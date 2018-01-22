@@ -10,14 +10,14 @@ class NPSExtractor(Extractor):
     """
 
     @property
-    def corpus_name(self):
+    def corpus_name(self) -> str:
         """
         The name of the corpus to extract from.
         """
         return "nps"
 
     @property
-    def skip_words(self):
+    def skip_words(self) -> set:
         """
         Server-side messages that should be skipped.
         """

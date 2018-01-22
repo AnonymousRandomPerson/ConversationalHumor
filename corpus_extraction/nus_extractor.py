@@ -1,15 +1,13 @@
 import json
 from extractor import Extractor, Message
 
-username = 'User'
-
 class NUSExtractor(Extractor):
     """
     Extracts from the NUS SMS corpus.
     """
 
     @property
-    def corpus_name(self):
+    def corpus_name(self) -> str:
         """
         The name of the corpus to extract from.
         """

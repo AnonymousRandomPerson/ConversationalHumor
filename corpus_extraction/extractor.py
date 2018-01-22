@@ -4,8 +4,8 @@ import ahocorasick
 
 Message = collections.namedtuple('Message', ['text', 'user'])
 punctuation = {'.', '?', '!', '"', "'"}
-humor_words = ['lol', 'haha', 'ha ha', 'lmao', 'rofl', 'rotfl', ':p', '=p', 'xd']
-data_folder = 'data'
+humor_words = ['lol', 'haha', 'ha ha', 'lmao', 'rofl', 'rotfl', ':p', '=p', 'xd', '😂', '😆', '😜']
+data_folder = os.path.join(os.path.dirname(__file__), 'data')
 automaton = ahocorasick.Automaton()
 for word in humor_words:
     automaton.add_word(word, word)
@@ -34,11 +34,18 @@ class Extractor(object):
         return "corpus"
 
     @property
-    def skip_words(self):
+    def skip_words(self) -> set:
         """
         Server-side messages that should be skipped.
         """
         return {}
+
+    @property
+    def conversation_length(self) -> int:
+        """
+        The maximum number of messages in a conversation.
+        """
+        return 3
 
     def get_corpus(self) -> list:
         """
@@ -61,28 +68,42 @@ class Extractor(object):
         """
         return text.strip()
 
+    def allow_write(self) -> bool:
+        """
+        Checks if the current state of the extractor allows a conversation to be written.
+        """
+        return True
+
     def extract(self):
         """
         Extracts humorous excerpts from a corpus.
         """
         filtered_file = open(os.path.join(data_folder, self.corpus_name + '_filtered.txt'), 'w')
+        negative_file = open(os.path.join(data_folder, self.corpus_name + '_negative.txt'), 'w')
         raw_file = open(os.path.join(data_folder, self.corpus_name + '_raw.txt'), 'w')
-        message_queue = collections.deque(maxlen=3)
+        message_queue = collections.deque(maxlen=self.conversation_length)
 
         found_humor = False
+        num_negatives = 0
 
-        def check_write_queue():
+        def check_write_queue(self):
             """
             Writes the current message queue if humor has been found.
             """
-            if found_humor:
-                new_write = ''
-                for queued_message in message_queue:
-                    new_write += queued_message.text + '\n'
-                if self.debug:
-                    print(new_write)
-                filtered_file.write(new_write + '\n')
-                self.num_excerpts += 1
+            if self.allow_write():
+                if found_humor:
+                    new_write = ''
+                    for queued_message in message_queue:
+                        new_write += queued_message.text + '\n'
+                    if self.debug:
+                        print(new_write)
+                    filtered_file.write(new_write + '\n')
+                    self.num_excerpts += 1
+                elif num_negatives >= self.conversation_length:
+                    new_write = ''
+                    for queued_message in message_queue:
+                        new_write += queued_message.text + '\n'
+                    negative_file.write(new_write + '\n')
 
         for post in self.get_corpus():
             post_text = post.text
@@ -104,7 +125,7 @@ class Extractor(object):
                     post_text = last_text + ' ' + post_text
                 else:
                     message_queue.append(last_message)
-                    check_write_queue()
+                    check_write_queue(self)
 
             message = Message(post_text, post.user)
             message_queue.append(message)
@@ -116,6 +137,11 @@ class Extractor(object):
                 found_humor = True
                 break
 
-        check_write_queue()
+            if found_humor:
+                num_negatives = 0
+            else:
+                num_negatives += 1
+
+        check_write_queue(self)
 
         print('Number of excerpts:', self.num_excerpts)
