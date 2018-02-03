@@ -1,5 +1,6 @@
 import os
-from extractor import Extractor, Message, data_folder
+from extractor import Extractor, Message
+from file_access import open_data_file
 
 encoding = 'utf-8'
 
@@ -38,7 +39,7 @@ class TwitterExtractor(Extractor):
         """
         twitter_text = []
         for file_name in ('twitter_en.txt', 'twitter_en_big.txt'):
-            with open(os.path.join(data_folder, file_name), encoding=encoding) as corpus_file:
+            with open_data_file(file_name) as corpus_file:
                 twitter_text += corpus_file.readlines()
         message_list = []
         for message in twitter_text:

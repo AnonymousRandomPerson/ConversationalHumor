@@ -1,11 +1,10 @@
 import collections
-import os
 import ahocorasick
+from file_access import open_data_file
 
 Message = collections.namedtuple('Message', ['text', 'user'])
 punctuation = {'.', '?', '!', '"', "'"}
 humor_words = ['lol', 'haha', 'ha ha', 'lmao', 'rofl', 'rotfl', ':p', '=p', 'xd', '😂', '😆', '😜']
-data_folder = os.path.join(os.path.dirname(__file__), 'data')
 automaton = ahocorasick.Automaton()
 for word in humor_words:
     automaton.add_word(word, word)
@@ -78,9 +77,9 @@ class Extractor(object):
         """
         Extracts humorous excerpts from a corpus.
         """
-        filtered_file = open(os.path.join(data_folder, self.corpus_name + '_filtered.txt'), 'w')
-        negative_file = open(os.path.join(data_folder, self.corpus_name + '_negative.txt'), 'w')
-        raw_file = open(os.path.join(data_folder, self.corpus_name + '_raw.txt'), 'w')
+        filtered_file = open_data_file(self.corpus_name + '_filtered.txt', 'w')
+        negative_file = open_data_file(self.corpus_name + '_negative.txt', 'w')
+        raw_file = open_data_file(self.corpus_name + '_raw.txt', 'w')
         message_queue = collections.deque(maxlen=self.conversation_length)
 
         found_humor = False

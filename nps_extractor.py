@@ -14,7 +14,7 @@ class NPSExtractor(Extractor):
         """
         The name of the corpus to extract from.
         """
-        return "nps"
+        return 'nps'
 
     @property
     def skip_words(self) -> set:
