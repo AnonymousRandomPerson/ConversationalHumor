@@ -1,5 +1,8 @@
 import nltk.tokenize as tokenize
 from file_access import open_data_file
+from pos_tagger import POSTagger
+
+pos_tagger = POSTagger()
 
 def preprocess_text(file_name: str) -> list:
     """
@@ -19,7 +22,6 @@ def preprocess_text(file_name: str) -> list:
             token_line = [preprocess_line(line) for line in lines]
             conversation_tokens.append(token_line)
 
-
     return []
 
 def preprocess_line(line_text: str) -> list:
@@ -33,5 +35,35 @@ def preprocess_line(line_text: str) -> list:
         A list of tokens representing the line.
     """
     token_sents = tokenize.sent_tokenize(line_text)
-    token_words = [tokenize.word_tokenize(sentence) for sentence in token_sents]
-    return token_words
+    tagged_sents = []
+    for sentence in token_sents:
+        tokens = tokenize.word_tokenize(sentence)
+        merged_tokens = merge_tokens(tokens)
+        tags = pos_tagger.tag_words(merged_tokens)
+        tagged_sents.append(tags)
+
+    return tagged_sents
+
+def merge_tokens(tokens: list) -> list:
+    """
+    Merges tokens that were incorrectly split and should be combined, like emoticons.
+
+    Args:
+        tokens: The original split token list.
+
+    Returns:
+        A list of merged tokens.
+    """
+    i = 0
+    new_tokens = []
+    while i < len(tokens) - 1:
+        combined_token = tokens[i] + tokens[i + 1]
+        if len(combined_token) == 2 and tokens[i] in {':', '='}:
+            new_tokens.append(combined_token)
+            i += 2
+        else:
+            new_tokens.append(tokens[i])
+            i += 1
+    if i < len(tokens):
+        new_tokens.append(tokens[i])
+    return new_tokens

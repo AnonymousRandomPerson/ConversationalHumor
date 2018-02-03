@@ -28,6 +28,12 @@ class POSTagger:
 
         for i, tag in enumerate(tag_list):
             if not tag[1]:
+                if len(words[i]) == 1:
+                    char_code = ord(words[i])
+                    if char_code >= 0x2620 and char_code <= 0x1f92f:
+                        # Tag emojis as interjections.
+                        tag_list[i] = (tag_list[i][0], 'UH')
+                        continue
                 tag_list[i] = alt_tag_list[i]
         return tag_list
 
