@@ -1,8 +1,13 @@
+from collections import namedtuple
+from nltk.corpus import stopwords
 import nltk.tokenize as tokenize
 from file_access import open_data_file
 from pos_tagger import POSTagger
 
 pos_tagger = POSTagger()
+stopwords = set(stopwords.words('english'))
+
+TaggedLine = namedtuple('TaggedLine', ['line', 'tagged_line', 'filtered_line'])
 
 def preprocess_text(file_name: str) -> list:
     """
@@ -40,7 +45,9 @@ def preprocess_line(line_text: str) -> list:
         tokens = tokenize.word_tokenize(sentence)
         merged_tokens = merge_tokens(tokens)
         tags = pos_tagger.tag_words(merged_tokens)
-        tagged_sents.append(tags)
+        filtered_tags = filter_stopwords(tags)
+
+        tagged_sents.append(TaggedLine(sentence, tags, filtered_tags))
 
     return tagged_sents
 
@@ -67,3 +74,15 @@ def merge_tokens(tokens: list) -> list:
     if i < len(tokens):
         new_tokens.append(tokens[i])
     return new_tokens
+
+def filter_stopwords(tags: list) -> list:
+    """
+    Filters out stopwords from a word list.
+
+    Args:
+        tags: The tagged word list to filter.
+
+    Returns:
+        A list of filtered tags.
+    """
+    return [tag for tag in tags if tag.word not in stopwords]

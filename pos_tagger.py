@@ -1,8 +1,11 @@
+from collections import namedtuple
 from pickle import dump, load
 import nltk
 from file_access import open_binary_file
 
 bigram_file = 'pos_tagger.pkl'
+
+TaggedWord = namedtuple('TaggedWord', ['word', 'pos'])
 
 class POSTagger:
 
@@ -27,14 +30,16 @@ class POSTagger:
         alt_tag_list = nltk.pos_tag(words)
 
         for i, tag in enumerate(tag_list):
-            if not tag[1]:
+            if tag[1]:
+                tag_list[i] = TaggedWord(tag[0], tag[1])
+            else:
                 if len(words[i]) == 1:
                     char_code = ord(words[i])
                     if char_code >= 0x2620 and char_code <= 0x1f92f:
                         # Tag emojis as interjections.
-                        tag_list[i] = (tag_list[i][0], 'UH')
+                        tag_list[i] = TaggedWord(tag[0], 'UH')
                         continue
-                tag_list[i] = alt_tag_list[i]
+                tag_list[i] = TaggedWord(alt_tag_list[i][0], alt_tag_list[i][1])
         return tag_list
 
 
