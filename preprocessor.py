@@ -9,12 +9,13 @@ stopwords = set(stopwords.words('english'))
 
 TaggedLine = namedtuple('TaggedLine', ['line', 'tagged_line', 'filtered_line'])
 
-def preprocess_text(file_name: str) -> list:
+def preprocess_text(file_name: str, limit: int = None) -> list:
     """
     Does preprocessing on a file to return a tokenized list of conversations.
 
     Args:
         file_name: The name of the file to get text from.
+        limit: A limit to the number of entries to read.
 
     Returns:
         A tokenized list of conversations from the file.
@@ -26,8 +27,10 @@ def preprocess_text(file_name: str) -> list:
             lines = conversation.split('\n')
             token_line = [preprocess_line(line) for line in lines]
             conversation_tokens.append(token_line)
+            if limit and len(conversation_tokens) >= limit:
+                break
 
-    return []
+    return conversation_tokens
 
 def preprocess_line(line_text: str) -> list:
     """
