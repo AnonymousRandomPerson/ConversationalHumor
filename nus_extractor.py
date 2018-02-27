@@ -1,4 +1,6 @@
 import json
+from typing import List
+
 from extractor import Extractor, Message
 
 class NUSExtractor(Extractor):
@@ -13,7 +15,7 @@ class NUSExtractor(Extractor):
         """
         return "nus"
 
-    def get_corpus(self) -> list:
+    def get_corpus(self) -> List[Message]:
         """
         Gets the corpus data to extract from.
 

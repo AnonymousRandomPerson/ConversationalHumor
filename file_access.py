@@ -1,8 +1,9 @@
 import os
+from typing import TextIO
 
 data_folder = 'data'
 
-def open_data_file(file_name: str, mode: str = 'r'):
+def open_data_file(file_name: str, mode: str = 'r') -> TextIO:
     """
     Opens a file for conversation data.
 

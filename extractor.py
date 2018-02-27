@@ -1,5 +1,8 @@
 import collections
+from typing import List, Set
+
 import ahocorasick
+
 from file_access import open_data_file
 
 Message = collections.namedtuple('Message', ['text', 'user'])
@@ -33,7 +36,7 @@ class Extractor(object):
         return "corpus"
 
     @property
-    def skip_words(self) -> set:
+    def skip_words(self) -> Set[str]:
         """
         Server-side messages that should be skipped.
         """
@@ -46,7 +49,7 @@ class Extractor(object):
         """
         return 3
 
-    def get_corpus(self) -> list:
+    def get_corpus(self) -> List[Message]:
         """
         Gets the corpus data to extract from.
 
@@ -73,7 +76,7 @@ class Extractor(object):
         """
         return True
 
-    def extract(self):
+    def extract(self) -> None:
         """
         Extracts humorous excerpts from a corpus.
         """
@@ -85,7 +88,7 @@ class Extractor(object):
         found_humor = False
         num_negatives = 0
 
-        def check_write_queue(self):
+        def check_write_queue(self) -> None:
             """
             Writes the current message queue if humor has been found.
             """

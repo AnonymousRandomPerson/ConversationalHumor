@@ -1,6 +1,9 @@
 from collections import namedtuple
+from typing import List, Set
+
 from nltk.corpus import stopwords
 import nltk.tokenize as tokenize
+
 from file_access import open_data_file
 from pos_tagger import POSTagger
 
@@ -9,7 +12,7 @@ stopwords = set(stopwords.words('english'))
 
 TaggedLine = namedtuple('TaggedLine', ['line', 'tagged_line', 'filtered_line'])
 
-def preprocess_text(file_name: str, limit: int = None) -> list:
+def preprocess_text(file_name: str, limit: int = None) -> List[List[TaggedLine]]:
     """
     Does preprocessing on a file to return a tokenized list of conversations.
 
@@ -32,7 +35,7 @@ def preprocess_text(file_name: str, limit: int = None) -> list:
 
     return conversation_tokens
 
-def preprocess_line(line_text: str) -> list:
+def preprocess_line(line_text: str) -> List[TaggedLine]:
     """
     Preprocesses a line by converting it to tokens.
 
@@ -54,7 +57,7 @@ def preprocess_line(line_text: str) -> list:
 
     return tagged_sents
 
-def merge_tokens(tokens: list) -> list:
+def merge_tokens(tokens: List[str]) -> List[str]:
     """
     Merges tokens that were incorrectly split and should be combined, like emoticons.
 
@@ -78,7 +81,7 @@ def merge_tokens(tokens: list) -> list:
         new_tokens.append(tokens[i])
     return new_tokens
 
-def filter_stopwords(tags: list) -> list:
+def filter_stopwords(tags: List[str]) -> List[str]:
     """
     Filters out stopwords from a word list.
 

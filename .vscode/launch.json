@@ -31,6 +31,24 @@
             "debugOptions": [
                 "RedirectOutput"
             ]
+        },
+        {
+            "name": "basic_lstm",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "${workspaceFolder}/basic_lstm.py",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "envFile": "${workspaceFolder}/.env",
+            "debugOptions": [
+                "RedirectOutput"
+            ],
+            "args": [
+                "-m",
+                "new_model"
+            ]
         }
     ]
 }

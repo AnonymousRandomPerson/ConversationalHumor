@@ -1,5 +1,8 @@
 import re
+from typing import List, Set
+
 from nltk.corpus import nps_chat as nps
+
 from extractor import Extractor, Message
 
 username = 'User'
@@ -17,13 +20,13 @@ class NPSExtractor(Extractor):
         return 'nps'
 
     @property
-    def skip_words(self) -> set:
+    def skip_words(self) -> Set[str]:
         """
         Server-side messages that should be skipped.
         """
         return {'PART', 'JOIN', 'NICK :' + username}
 
-    def get_corpus(self) -> list:
+    def get_corpus(self) -> List[Message]:
         """
         Gets the corpus data to extract from.
 

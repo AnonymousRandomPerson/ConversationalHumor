@@ -1,4 +1,5 @@
-import os
+from typing import List
+
 from extractor import Extractor, Message
 from file_access import open_data_file
 
@@ -30,7 +31,7 @@ class TwitterExtractor(Extractor):
         """
         return 2
 
-    def get_corpus(self) -> list:
+    def get_corpus(self) -> List[Message]:
         """
         Gets the corpus data to extract from.
 

@@ -1,6 +1,9 @@
 from collections import namedtuple
 from pickle import dump, load
+from typing import List
+
 import nltk
+
 from file_access import open_binary_file
 
 bigram_file = 'pos_tagger.pkl'
@@ -16,7 +19,7 @@ class POSTagger:
         with open_binary_file(bigram_file) as tag_file:
             self.bigram_tagger = load(tag_file)
 
-    def tag_words(self, words: list) -> list:
+    def tag_words(self, words: List[str]) -> List[TaggedWord]:
         """
         Tags words in a sentence with their parts of speech.
 
@@ -43,7 +46,7 @@ class POSTagger:
         return tag_list
 
 
-def save_tagger():
+def save_tagger() -> None:
     """
     Saves a tagger as a Pickle file.
     """
