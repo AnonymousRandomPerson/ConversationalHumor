@@ -1,7 +1,8 @@
 import os
 from typing import TextIO
 
-data_folder = 'data'
+DATA_FOLDER = 'data'
+SAVED_MODEL_FOLDER = './tfsave/'
 
 def open_data_file(file_name: str, mode: str = 'r') -> TextIO:
     """
@@ -14,7 +15,7 @@ def open_data_file(file_name: str, mode: str = 'r') -> TextIO:
     Returns:
         An opened file for conversation data.
     """
-    return open(os.path.join(data_folder, file_name), mode=mode, encoding='utf-8')
+    return open(os.path.join(DATA_FOLDER, file_name), mode=mode, encoding='utf-8')
 
 def open_binary_file(file_name: str, mode: str = 'rb'):
     """
@@ -27,4 +28,4 @@ def open_binary_file(file_name: str, mode: str = 'rb'):
     Returns:
         An opened file for binary data.
     """
-    return open(os.path.join(data_folder, file_name), mode=mode)
+    return open(os.path.join(DATA_FOLDER, file_name), mode=mode)
