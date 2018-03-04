@@ -3,6 +3,7 @@ from typing import TextIO
 
 DATA_FOLDER = 'data'
 SAVED_MODEL_FOLDER = './tfsave/'
+PICKLE_EXTENSION = '.pickle'
 
 def open_data_file(file_name: str, mode: str = 'r') -> TextIO:
     """

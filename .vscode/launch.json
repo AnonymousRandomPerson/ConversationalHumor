@@ -46,8 +46,22 @@
                 "RedirectOutput"
             ],
             "args": [
-                "-m",
-                "new_model"
+                "-e",
+                "test_embeddings"
+            ]
+        },
+        {
+            "name": "word_embeddings",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "${workspaceFolder}/word_embeddings.py",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "envFile": "${workspaceFolder}/.env",
+            "debugOptions": [
+                "RedirectOutput"
             ]
         }
     ]
