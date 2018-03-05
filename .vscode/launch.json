@@ -47,7 +47,7 @@
             ],
             "args": [
                 "-e",
-                "test_embeddings"
+                "embeddings"
             ]
         },
         {

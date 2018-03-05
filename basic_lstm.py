@@ -12,6 +12,7 @@ import tensorflow as tf
 import tensorflow.contrib.rnn as rnn
 
 from file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
+from word_embeddings import END_TOKEN, START_TOKEN, UNKNOWN_TOKEN
 
 EPOCHS = 500
 N_INPUT = 3
@@ -24,9 +25,6 @@ model_file = 'test_model'
 corpus_name = 'twitter_test.txt'
 embedding_file = None
 test = True
-
-END_TOKEN = '<e>'
-START_TOKEN = '<s>'
 
 def build_dataset(words: List[str]) -> Tuple[Dict[str, int], Dict[int, str]]:
     """
@@ -74,7 +72,6 @@ def run() -> None:
     Runs the LSTM.
     """
     save_model_path = SAVED_MODEL_FOLDER + model_file
-    save_embedding_path = SAVED_MODEL_FOLDER + embedding_file
     summary_file = SAVED_MODEL_FOLDER + 'summary'
 
     punch_lines = ''
@@ -97,15 +94,41 @@ def run() -> None:
 
     dictionary, reverse_dictionary = build_dataset(words)
 
+    end_key = dictionary[END_TOKEN]
+    start_key = dictionary[START_TOKEN]
+
     vocab_size = len(dictionary)
     batch_size = len(words) - N_INPUT
     num_outputs = vocab_size
 
     if embedding_file:
+        save_embedding_path = SAVED_MODEL_FOLDER + embedding_file
         with open(save_embedding_path + PICKLE_EXTENSION, 'rb') as f:
-            embeddings = pickle.load(f)
-            np_embeddings = np.array(embeddings)
-        num_outputs = len(embeddings[0])
+            # Word -> embedding.
+            embeddings_dict = pickle.load(f)
+
+        # Word index -> embedding.
+        index_embeddings = {}
+        unknown_embedding = embeddings_dict[UNKNOWN_TOKEN]
+        for word, index in dictionary.items():
+            if word in embeddings_dict:
+                index_embeddings[index] = embeddings_dict[word]
+            else:
+                index_embeddings[index] = unknown_embedding
+
+        # Embeddings.
+        embeddings_list = []
+        # Order in embeddings_list -> word index.
+        embedding_order = {}
+        order = 0
+        for word, embedding in embeddings_dict.items():
+            if word in dictionary:
+                embeddings_list.append(embedding)
+                embedding_order[order] = dictionary[word]
+                order += 1
+        embeddings_list = np.asarray(embeddings_list)
+
+        num_outputs = len(unknown_embedding)
 
     # Define the network structure.
     weights = {
@@ -120,18 +143,19 @@ def run() -> None:
 
     rnn_cell, pred = create_rnn(x, weights, biases)
 
-    cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=pred, labels=y))
+    if embedding_file:
+        cost = tf.reduce_mean(tf.nn.l2_loss(tf.subtract(pred, y)))
+    else:
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=pred, labels=y))
     optimizer = tf.train.RMSPropOptimizer(learning_rate=LEARNING_RATE).minimize(cost)
-    correct_pred = tf.equal(tf.argmax(pred, 1), tf.argmax(y, 1))
-    accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
-    max_accuracy = tf.Variable(0, dtype=tf.float32)
+    min_loss = tf.Variable(float('inf'), dtype=tf.float32)
 
     init = tf.global_variables_initializer()
 
-    tf.summary.scalar('accuracy', accuracy)
+    tf.summary.scalar('loss', cost)
     summary_merge = tf.summary.merge_all()
 
-    saver = tf.train.Saver([weights['out'], biases['out'], max_accuracy] + rnn_cell.variables, save_relative_paths=True)
+    saver = tf.train.Saver([weights['out'], biases['out'], min_loss] + rnn_cell.variables, save_relative_paths=True)
 
     with tf.Session() as sess:
         sess.run(init)
@@ -146,8 +170,6 @@ def run() -> None:
             """
 
             # Start with two start tokens and a random word.
-            end_key = dictionary[END_TOKEN]
-            start_key = dictionary[START_TOKEN]
             symbols_in_keys = [start_key for i in range(N_INPUT - 1)]
             rand_key = start_key
             while rand_key == start_key or rand_key == end_key:
@@ -159,7 +181,8 @@ def run() -> None:
                 keys = np.reshape(np.array(symbols_in_keys[i:]), [-1, N_INPUT])
                 pred_output = sess.run(pred, feed_dict={x: keys})
                 if embedding_file:
-                    pred_index = np.argmin(np.linalg.norm(np_embeddings - pred_output, axis=0)) + 1
+                    embedding_index = np.argmin(np.linalg.norm(embeddings_list - pred_output, axis=0))
+                    pred_index = embedding_order[embedding_index]
                 else:
                     pred_index = int(tf.argmax(pred_output, 1).eval())
                 if pred_index == end_key:
@@ -167,39 +190,50 @@ def run() -> None:
                 symbols_in_keys.append(pred_index)
 
             # Create the sentence by converting word indices to words.
+            sentence = convert_indices_to_sentence(symbols_in_keys)
+            print('Test sentence:', sentence + '\n')
+
+        def convert_indices_to_sentence(symbols_in_keys: List[int]) -> str:
+            """
+            Convert a list of word indices into a sentence.
+
+            Args:
+                symbols_in_keys: A list of word indices to convert into a sentence.
+
+            Returns:
+                sentence: The sentence represented by the word indices.
+            """
             sentence = ''
             for symbol in symbols_in_keys:
                 if symbol != start_key:
                     sentence += reverse_dictionary[symbol] + ' '
-            sentence = sentence[:-1]
-            print('Test sentence:', sentence + '\n')
+            return sentence[:-1]
 
         if test:
             generate_sentence()
         else:
             for epoch in range(EPOCHS):
-                total_acc = 0
+                total_loss = 0
                 for offset in range(batch_size):
                     symbols_in_keys = [[dictionary[str(words[i])] for i in range(offset, offset + N_INPUT)]]
 
                     word_index = dictionary[str(words[offset + N_INPUT])]
                     if embedding_file:
-                        # Minus one to account for no start token embedding.
-                        symbols_out = np.asarray(embeddings[word_index - 1])
+                        symbols_out = np.asarray(index_embeddings[word_index])
                     else:
                         symbols_out = np.zeros([num_outputs], dtype=float)
                         symbols_out[word_index] = 1.0
                     symbols_out = np.reshape(symbols_out, [1, -1])
 
-                    _, _, acc, _, _ = sess.run([summary_merge, optimizer, accuracy, cost, pred], feed_dict={x: symbols_in_keys, y: symbols_out})
-                    total_acc += acc
+                    _, _, loss, _ = sess.run([summary_merge, optimizer, cost, pred], feed_dict={x: symbols_in_keys, y: symbols_out})
+                    total_loss += loss
 
-                current_acc = total_acc / batch_size
-                print('Current accuracy', current_acc)
-                if max_accuracy.eval() < current_acc:
-                    max_accuracy.assign(current_acc).op.run()
+                current_loss = total_loss / batch_size
+                print('Current loss', current_loss)
+                if min_loss.eval() > current_loss:
+                    min_loss.assign(current_loss).op.run()
                     saver.save(sess, save_model_path)
-                    print('Saved new model with accuracy', current_acc)
+                    print('Saved new model with loss', current_loss)
                     generate_sentence()
                 elif epoch % GENERATE_INCREMENT == 0:
                     generate_sentence()

@@ -12,7 +12,6 @@ from typing import List, Tuple
 import numpy as np
 import tensorflow as tf
 
-from basic_lstm import END_TOKEN
 from file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
 
 BATCH_SIZE = 32
@@ -21,17 +20,21 @@ BATCH_SIZE = 32
 VALID_SIZE = 16
 
 # Dimension of the embedding vector.
-EMBEDDING_SIZE = 5
+EMBEDDING_SIZE = 128
 
 # We pick a random validation set to sample nearest neighbors. Here we limit the
 # validation samples to the words that have a low numeric ID, which by
 # construction are also the most frequent
 
-NUM_STEPS = 10000
+num_steps = 10000
 
 model_file = 'test_embeddings'
 corpus_name = 'twitter_test.txt'
 test = True
+
+END_TOKEN = '<e>'
+START_TOKEN = '<s>'
+UNKNOWN_TOKEN = 'UNK'
 
 class WordData(object):
     """
@@ -73,7 +76,7 @@ class WordData(object):
         Args:
             words: A list of words from the raw input.
         """
-        self.count = [('UNK', -1)]
+        self.count = [(UNKNOWN_TOKEN, -1)]
         self.count.extend(collections.Counter(words).most_common(self.VOCABULARY_SIZE - 1))
         self.dictionary = dict()
         for word, _ in self.count:
@@ -84,7 +87,7 @@ class WordData(object):
             if word in self.dictionary:
                 index = self.dictionary[word]
             else:
-                # dictionary['UNK']
+                # dictionary[UNKNOWN_TOKEN]
                 index = 0
                 unk_count += 1
             self.data.append(index)
@@ -273,7 +276,7 @@ def train(wordData: WordData, graph: EmbeddingGraph) -> None:
 
             average_loss = 0
 
-            for step in range(NUM_STEPS):
+            for step in range(num_steps):
                 batch_inputs, batch_context = wordData.generate_batch()
                 feed_dict = {graph.train_inputs: batch_inputs, graph.train_context: batch_context}
 
@@ -285,24 +288,28 @@ def train(wordData: WordData, graph: EmbeddingGraph) -> None:
                 if step % 100 == 0:
                     print('Step', step)
 
-                if step % 2000 == 0 or step == NUM_STEPS - 1:
+                if step % 2000 == 0 or step == num_steps - 1:
                     if step > 0:
                         average_loss /= 2000
                         if graph.max_accuracy.eval() > average_loss:
                             graph.max_accuracy.assign(average_loss).op.run()
                             saver.save(session, save_file_path)
                             print('Saved new model with loss', average_loss)
+                            test_model()
 
                     # The average loss is an estimate of the loss over the last 2000 batches.
                     print('Average loss at step ', step, ': ', average_loss)
                     average_loss = 0
 
                 # Note that this is expensive (~20% slowdown if computed every 500 steps)
-                if step % 10000 == 0 or step == NUM_STEPS - 1:
+                if step % 10000 == 0 or step == num_steps - 1:
                     test_model()
         final_embeddings = graph.normalized_embeddings.eval()
+        embedding_dict = {}
+        for i, embedding in enumerate(final_embeddings):
+            embedding_dict[wordData.reversed_dictionary[i]] = embedding
         with open(save_file_path + PICKLE_EXTENSION, 'wb') as f:
-            pickle.dump(final_embeddings, f)
+            pickle.dump(embedding_dict, f)
 
 def run_softmax(wordData: WordData, graph: EmbeddingGraph) -> None:
     """
@@ -315,7 +322,7 @@ def run_softmax(wordData: WordData, graph: EmbeddingGraph) -> None:
     softmax_start_time = dt.datetime.now()
     train(wordData, graph)
     softmax_end_time = dt.datetime.now()
-    print("Softmax method took {} seconds to run {} iterations".format((softmax_end_time-softmax_start_time).total_seconds(), NUM_STEPS))
+    print("Softmax method took {} seconds to run {} iterations".format((softmax_end_time-softmax_start_time).total_seconds(), num_steps))
 
 def run_nce(wordData: WordData, graph: EmbeddingGraph) -> None:
     """
@@ -349,18 +356,22 @@ def run_nce(wordData: WordData, graph: EmbeddingGraph) -> None:
     nce_start_time = dt.datetime.now()
     train(wordData, graph)
     nce_end_time = dt.datetime.now()
-    print("NCE method took {} seconds to run {} iterations".format((nce_end_time-nce_start_time).total_seconds(), NUM_STEPS))
+    print("NCE method took {} seconds to run {} iterations".format((nce_end_time-nce_start_time).total_seconds(), num_steps))
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Train a basic LSTM.')
+    parser = argparse.ArgumentParser(description='Create a model for word embeddings.')
     parser.add_argument('-c', '--corpus-file', help='The name of the corpus to get data from.')
     parser.add_argument('-m', '--model-file', help='The name of the model to load and save.')
+    parser.add_argument('-n', '--num_steps', type=int, help='The number of batches to train for')
     parser.add_argument('-t', '--test', help='Test the current model.', action='store_true')
     args = parser.parse_args()
 
     test = args.test
+    if args.corpus_file:
+        corpus_name = args.corpus_file
     if args.model_file:
         model_file = args.model_file
-        corpus_name = args.corpus_file
+    if args.num_steps:
+        num_steps = args.num_steps
 
     run()
