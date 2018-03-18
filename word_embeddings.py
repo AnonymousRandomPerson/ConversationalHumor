@@ -14,7 +14,7 @@ import tensorflow as tf
 
 from file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
 
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 
 # Random set of words to evaluate similarity on.
 VALID_SIZE = 16
@@ -22,15 +22,20 @@ VALID_SIZE = 16
 # Dimension of the embedding vector.
 EMBEDDING_SIZE = 128
 
+PRINT_LOSS_STEP = 100
+
 # We pick a random validation set to sample nearest neighbors. Here we limit the
 # validation samples to the words that have a low numeric ID, which by
 # construction are also the most frequent
 
-num_steps = 10000
+num_steps = 100000
+
+NUM_TEST_NEIGHBORS = 8
 
 model_file = 'test_embeddings'
 corpus_name = 'twitter_test.txt'
 test = True
+word_test = None
 
 END_TOKEN = '<e>'
 START_TOKEN = '<s>'
@@ -60,7 +65,10 @@ class WordData(object):
         Initializes the data set.
         """
         self.collect_data()
-        self.end_key = self.dictionary[END_TOKEN]
+        if END_TOKEN in self.dictionary:
+            self.end_key = self.dictionary[END_TOKEN]
+        else:
+            self.end_key = -1
         self.VOCABULARY_SIZE = min(self.VOCABULARY_SIZE, len(self.dictionary))
 
         self.VALID_WINDOW = min(self.VALID_WINDOW, len(self.dictionary))
@@ -111,6 +119,7 @@ class WordData(object):
                     continue
                 vocabulary.extend(line.split(' ') + [END_TOKEN])
 
+
         self.build_dataset(vocabulary)
 
     def generate_batch(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -142,7 +151,7 @@ class WordData(object):
             if self.data[self.data_index] != self.end_key:
                 buffer.append(self.data[self.data_index])
                 self.increment_data_index()
-            buffer.pop()
+            buffer.popleft()
             if len(buffer) <= self.NUM_SKIPS:
                 buffer = self.fill_buffer()
 
@@ -253,14 +262,18 @@ def train(wordData: WordData, graph: EmbeddingGraph) -> None:
         sim = graph.similarity.eval()
         for i in range(VALID_SIZE):
             valid_word = wordData.reversed_dictionary[wordData.valid_examples[i]]
+            if word_test:
+                valid_word = word_test
             # number of nearest neighbors
-            top_k = 8
+            top_k = NUM_TEST_NEIGHBORS
             nearest = (-sim[i, :]).argsort()[1:top_k + 1]
             log_str = 'Nearest to %s:' % valid_word
             for k in range(top_k):
                 close_word = wordData.reversed_dictionary[nearest[k]]
                 log_str = '%s %s,' % (log_str, close_word)
             print(log_str)
+            if word_test:
+                break
 
     with tf.Session(graph=graph.graph) as session:
         # We must initialize all variables before we use them.
@@ -285,12 +298,14 @@ def train(wordData: WordData, graph: EmbeddingGraph) -> None:
                 _, loss_val = session.run([graph.optimizer, graph.cross_entropy], feed_dict=feed_dict)
                 average_loss += loss_val
 
+                last_step = step == num_steps - 1
+
                 if step % 100 == 0:
                     print('Step', step)
 
-                if step % 2000 == 0 or step == num_steps - 1:
+                if step % PRINT_LOSS_STEP == 0 or last_step:
                     if step > 0:
-                        average_loss /= 2000
+                        average_loss /= PRINT_LOSS_STEP
                         if graph.max_accuracy.eval() > average_loss:
                             graph.max_accuracy.assign(average_loss).op.run()
                             saver.save(session, save_file_path)
@@ -302,7 +317,7 @@ def train(wordData: WordData, graph: EmbeddingGraph) -> None:
                     average_loss = 0
 
                 # Note that this is expensive (~20% slowdown if computed every 500 steps)
-                if step % 10000 == 0 or step == num_steps - 1:
+                if step % 10000 == 0 or last_step:
                     test_model()
         final_embeddings = graph.normalized_embeddings.eval()
         embedding_dict = {}
@@ -362,8 +377,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create a model for word embeddings.')
     parser.add_argument('-c', '--corpus-file', help='The name of the corpus to get data from.')
     parser.add_argument('-m', '--model-file', help='The name of the model to load and save.')
-    parser.add_argument('-n', '--num_steps', type=int, help='The number of batches to train for')
+    parser.add_argument('-n', '--num-steps', type=int, help='The number of batches to train for')
     parser.add_argument('-t', '--test', help='Test the current model.', action='store_true')
+    parser.add_argument('-w', '--word-test', help='A word to test the current model with')
     args = parser.parse_args()
 
     test = args.test
@@ -373,5 +389,7 @@ if __name__ == '__main__':
         model_file = args.model_file
     if args.num_steps:
         num_steps = args.num_steps
+    if args.word_test:
+        word_test = args.word_test
 
     run()
