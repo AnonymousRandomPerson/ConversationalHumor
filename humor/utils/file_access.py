@@ -3,7 +3,7 @@ from typing import TextIO
 
 ROOT_FOLDER = 'humor'
 DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data')
-SAVED_MODEL_FOLDER = os.path.join(ROOT_FOLDER, 'tfsave/')
+SAVED_MODEL_FOLDER = os.path.join(ROOT_FOLDER, 'tfsave')
 PICKLE_EXTENSION = '.pickle'
 
 def open_data_file(file_name: str, mode: str = 'r') -> TextIO:

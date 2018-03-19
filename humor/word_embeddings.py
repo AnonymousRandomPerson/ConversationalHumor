@@ -33,7 +33,7 @@ num_steps = 100000
 NUM_TEST_NEIGHBORS = 8
 
 model_file = 'test_embeddings'
-final_model_path = SAVED_MODEL_FOLDER + 'final'
+final_model_path = os.path.join(SAVED_MODEL_FOLDER, 'final')
 corpus_name = 'twitter_test.txt'
 test = True
 word_test = None
@@ -253,7 +253,7 @@ def train(wordData: WordData, graph: EmbeddingGraph) -> None:
         wordData: The word data to run the session with.
         graph: The tensor graph to run the session with.
     """
-    save_file_path = SAVED_MODEL_FOLDER + model_file
+    save_file_path = os.path.join(SAVED_MODEL_FOLDER, model_file)
     saver = tf.train.Saver([graph.weights, graph.biases, graph.embeddings, graph.max_accuracy], save_relative_paths=True)
 
     def test_model() -> None:

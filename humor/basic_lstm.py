@@ -20,10 +20,10 @@ N_INPUT = 3
 N_HIDDEN = 512
 LEARNING_RATE = 0.001
 
-GENERATE_INCREMENT = 10
+GENERATE_INCREMENT = 10000
 
 model_file = 'test_model'
-final_model_path = SAVED_MODEL_FOLDER + 'final'
+final_model_path = os.path.join(SAVED_MODEL_FOLDER, 'final')
 corpus_name = 'twitter_test.txt'
 embedding_file = None
 test = True
@@ -73,8 +73,8 @@ def run() -> None:
     """
     Runs the LSTM.
     """
-    save_model_path = SAVED_MODEL_FOLDER + model_file
-    summary_file = SAVED_MODEL_FOLDER + 'summary'
+    save_model_path = os.path.join(SAVED_MODEL_FOLDER, model_file)
+    summary_file = os.path.join(SAVED_MODEL_FOLDER + 'summary')
 
     punch_lines = ''
     sentence_length = 1
@@ -104,7 +104,7 @@ def run() -> None:
     num_outputs = vocab_size
 
     if embedding_file:
-        save_embedding_path = SAVED_MODEL_FOLDER + embedding_file
+        save_embedding_path = os.path.join(SAVED_MODEL_FOLDER, embedding_file)
         with open(save_embedding_path + PICKLE_EXTENSION, 'rb') as f:
             # Word -> embedding.
             embeddings_dict = pickle.load(f)
@@ -162,6 +162,7 @@ def run() -> None:
     with tf.Session() as sess:
         sess.run(init)
         if os.path.exists(save_model_path + '.index'):
+            print("Restored")
             saver.restore(sess, save_model_path)
 
         _ = tf.summary.FileWriter(summary_file, sess.graph)
@@ -215,8 +216,8 @@ def run() -> None:
             generate_sentence()
         else:
             batch_counter = 0
+            total_loss = 0
             for epoch in range(EPOCHS):
-                total_loss = 0
                 for offset in range(num_examples):
                     symbols_in_keys = [[dictionary[str(words[i])] for i in range(offset, offset + N_INPUT)]]
 
@@ -235,7 +236,7 @@ def run() -> None:
                     if batch_counter >= BATCH_SIZE:
                         batch_counter = 0
 
-                        current_loss = total_loss / num_examples
+                        current_loss = total_loss / BATCH_SIZE
                         print('Epoch:', epoch, 'Example:', offset, 'Current loss:', current_loss)
                         if min_loss.eval() > current_loss:
                             min_loss.assign(current_loss).op.run()
@@ -243,9 +244,11 @@ def run() -> None:
                             print('Saved new model with loss', current_loss)
                             generate_sentence()
 
-                        elif epoch % GENERATE_INCREMENT == 0:
+                        elif offset % GENERATE_INCREMENT == GENERATE_INCREMENT - 1:
                             saver.save(sess, final_model_path)
                             generate_sentence()
+
+                        total_loss = 0
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a basic LSTM.')
