@@ -1,7 +1,7 @@
 import json
 from typing import List
 
-from extractor import Extractor, Message
+from .extractor import Extractor, Message
 
 class NUSExtractor(Extractor):
     """

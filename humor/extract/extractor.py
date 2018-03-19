@@ -3,7 +3,7 @@ from typing import List, Set
 
 import ahocorasick
 
-from file_access import open_data_file
+from ..utils.file_access import open_data_file
 
 Message = collections.namedtuple('Message', ['text', 'user'])
 punctuation = {'.', '?', '!', '"', "'"}

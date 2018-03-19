@@ -10,7 +10,7 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "${workspaceFolder}/run_extraction.py",
+            "program": "${workspaceFolder}/humor/data/run_extraction.py",
             "cwd": "${workspaceFolder}",
             "env": {},
             "envFile": "${workspaceFolder}/.env",
@@ -24,7 +24,7 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "${workspaceFolder}/run_preprocessing.py",
+            "program": "${workspaceFolder}/humor/data/run_preprocessing.py",
             "cwd": "${workspaceFolder}",
             "env": {},
             "envFile": "${workspaceFolder}/.env",
@@ -38,7 +38,7 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "${workspaceFolder}/basic_lstm.py",
+            "program": "${workspaceFolder}/humor/basic_lstm.py",
             "cwd": "${workspaceFolder}",
             "env": {},
             "envFile": "${workspaceFolder}/.env",
@@ -56,12 +56,16 @@
             "request": "launch",
             "stopOnEntry": false,
             "pythonPath": "${config:python.pythonPath}",
-            "program": "${workspaceFolder}/word_embeddings.py",
+            "program": "${workspaceFolder}/humor/word_embeddings.py",
             "cwd": "${workspaceFolder}",
             "env": {},
             "envFile": "${workspaceFolder}/.env",
             "debugOptions": [
                 "RedirectOutput"
+            ],
+            "args": [
+                "-c",
+                "text8"
             ]
         }
     ]

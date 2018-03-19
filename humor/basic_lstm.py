@@ -11,10 +11,11 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.rnn as rnn
 
-from file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
-from word_embeddings import END_TOKEN, START_TOKEN, UNKNOWN_TOKEN
+from .utils.file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
+from .word_embeddings import END_TOKEN, START_TOKEN, UNKNOWN_TOKEN
 
-EPOCHS = 500
+EPOCHS = 100
+BATCH_SIZE = 1000
 N_INPUT = 3
 N_HIDDEN = 512
 LEARNING_RATE = 0.001
@@ -22,6 +23,7 @@ LEARNING_RATE = 0.001
 GENERATE_INCREMENT = 10
 
 model_file = 'test_model'
+final_model_path = SAVED_MODEL_FOLDER + 'final'
 corpus_name = 'twitter_test.txt'
 embedding_file = None
 test = True
@@ -98,7 +100,7 @@ def run() -> None:
     start_key = dictionary[START_TOKEN]
 
     vocab_size = len(dictionary)
-    batch_size = len(words) - N_INPUT
+    num_examples = len(words) - N_INPUT
     num_outputs = vocab_size
 
     if embedding_file:
@@ -212,9 +214,10 @@ def run() -> None:
         if test:
             generate_sentence()
         else:
+            batch_counter = 0
             for epoch in range(EPOCHS):
                 total_loss = 0
-                for offset in range(batch_size):
+                for offset in range(num_examples):
                     symbols_in_keys = [[dictionary[str(words[i])] for i in range(offset, offset + N_INPUT)]]
 
                     word_index = dictionary[str(words[offset + N_INPUT])]
@@ -228,15 +231,21 @@ def run() -> None:
                     _, _, loss, _ = sess.run([summary_merge, optimizer, cost, pred], feed_dict={x: symbols_in_keys, y: symbols_out})
                     total_loss += loss
 
-                current_loss = total_loss / batch_size
-                print('Current loss', current_loss)
-                if min_loss.eval() > current_loss:
-                    min_loss.assign(current_loss).op.run()
-                    saver.save(sess, save_model_path)
-                    print('Saved new model with loss', current_loss)
-                    generate_sentence()
-                elif epoch % GENERATE_INCREMENT == 0:
-                    generate_sentence()
+                    batch_counter += 1
+                    if batch_counter >= BATCH_SIZE:
+                        batch_counter = 0
+
+                        current_loss = total_loss / num_examples
+                        print('Epoch:', epoch, 'Example:', offset, 'Current loss:', current_loss)
+                        if min_loss.eval() > current_loss:
+                            min_loss.assign(current_loss).op.run()
+                            saver.save(sess, save_model_path)
+                            print('Saved new model with loss', current_loss)
+                            generate_sentence()
+
+                        elif epoch % GENERATE_INCREMENT == 0:
+                            saver.save(sess, final_model_path)
+                            generate_sentence()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a basic LSTM.')

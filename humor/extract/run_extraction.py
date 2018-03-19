@@ -1,6 +1,6 @@
-from nps_extractor import NPSExtractor
-from nus_extractor import NUSExtractor
-from twitter_extractor import TwitterExtractor
+from .nps_extractor import NPSExtractor
+from .nus_extractor import NUSExtractor
+from .twitter_extractor import TwitterExtractor
 
 extractors = []
 extractors.append(NPSExtractor())

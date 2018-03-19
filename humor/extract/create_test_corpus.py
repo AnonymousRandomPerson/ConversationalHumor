@@ -1,7 +1,7 @@
 import argparse
 import random
 
-from file_access import open_data_file
+from ..utils.file_access import open_data_file
 
 corpus_name = 'twitter_filtered.txt'
 save_file = 'twitter_test.txt'

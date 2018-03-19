@@ -1,6 +1,6 @@
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-from preprocessor import preprocess_text
+from .preprocessor import preprocess_text
 
 example_limit = 5
 

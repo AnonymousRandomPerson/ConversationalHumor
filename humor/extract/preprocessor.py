@@ -4,8 +4,8 @@ from typing import List, Set
 from nltk.corpus import stopwords
 import nltk.tokenize as tokenize
 
-from file_access import open_data_file
-from pos_tagger import POSTagger
+from ..utils.file_access import open_data_file
+from .pos_tagger import POSTagger
 
 pos_tagger = POSTagger()
 stopwords = set(stopwords.words('english'))

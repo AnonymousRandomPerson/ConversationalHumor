@@ -3,7 +3,7 @@ from typing import List, Set
 
 from nltk.corpus import nps_chat as nps
 
-from extractor import Extractor, Message
+from .extractor import Extractor, Message
 
 username = 'User'
 

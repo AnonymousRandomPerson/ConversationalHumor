@@ -4,7 +4,7 @@ from typing import List
 
 import nltk
 
-from file_access import open_binary_file
+from ..utils.file_access import open_binary_file
 
 bigram_file = 'pos_tagger.pkl'
 

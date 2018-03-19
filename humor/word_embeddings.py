@@ -12,7 +12,7 @@ from typing import List, Tuple
 import numpy as np
 import tensorflow as tf
 
-from file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
+from .utils.file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
 
 BATCH_SIZE = 128
 
@@ -33,6 +33,7 @@ num_steps = 100000
 NUM_TEST_NEIGHBORS = 8
 
 model_file = 'test_embeddings'
+final_model_path = SAVED_MODEL_FOLDER + 'final'
 corpus_name = 'twitter_test.txt'
 test = True
 word_test = None
@@ -313,17 +314,19 @@ def train(wordData: WordData, graph: EmbeddingGraph) -> None:
                             test_model()
 
                     # The average loss is an estimate of the loss over the last 2000 batches.
-                    print('Average loss at step ', step, ': ', average_loss)
+                    print('Average loss at step', str(step) + ':', average_loss)
                     average_loss = 0
 
                 # Note that this is expensive (~20% slowdown if computed every 500 steps)
                 if step % 10000 == 0 or last_step:
+                    graph.max_accuracy.assign(average_loss).op.run()
+                    saver.save(session, final_model_path)
                     test_model()
         final_embeddings = graph.normalized_embeddings.eval()
         embedding_dict = {}
         for i, embedding in enumerate(final_embeddings):
             embedding_dict[wordData.reversed_dictionary[i]] = embedding
-        with open(save_file_path + PICKLE_EXTENSION, 'wb') as f:
+        with open(final_model_path + PICKLE_EXTENSION, 'wb') as f:
             pickle.dump(embedding_dict, f)
 
 def run_softmax(wordData: WordData, graph: EmbeddingGraph) -> None:

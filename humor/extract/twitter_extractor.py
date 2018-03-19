@@ -1,7 +1,7 @@
 from typing import List
 
-from extractor import Extractor, Message
-from file_access import open_data_file
+from .extractor import Extractor, Message
+from ..utils.file_access import open_data_file
 
 encoding = 'utf-8'
 

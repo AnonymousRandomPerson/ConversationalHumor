@@ -3,7 +3,7 @@ import os
 
 from send2trash import send2trash
 
-from file_access import SAVED_MODEL_FOLDER
+from .file_access import SAVED_MODEL_FOLDER
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Delete a saved model')
