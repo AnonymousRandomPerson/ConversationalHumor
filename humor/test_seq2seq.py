@@ -1,3 +1,4 @@
+import argparse
 import os
 import sys
 
@@ -17,6 +18,7 @@ def main():
     if os.path.exists(TEST_OUTPUT_FILE):
         os.remove(TEST_OUTPUT_FILE)
 
+    sys.argv = sys.argv[:1]
     infer.main(sys.argv, config_string)
 
 if __name__ == '__main__':

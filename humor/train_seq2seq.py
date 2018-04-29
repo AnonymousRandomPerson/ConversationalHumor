@@ -2,6 +2,8 @@ import argparse
 import os
 import sys
 
+import tensorflow as tf
+
 from utils.file_access import add_module, CONFIG_FOLDER, SEQ2SEQ_MODULE
 
 add_module(SEQ2SEQ_MODULE)
@@ -9,6 +11,8 @@ add_module(SEQ2SEQ_MODULE)
 import seq2seq_sub.bin.train as train
 
 def main():
+    tf.logging.set_verbosity(tf.logging.INFO)
+
     parser = argparse.ArgumentParser(description='Trains a seq2seq model.')
     parser.add_argument('-c', '--config-file', required=True, help='The config file to use for the seq2seq training.')
     args = parser.parse_args()

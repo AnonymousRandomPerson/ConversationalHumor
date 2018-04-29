@@ -1,20 +1,20 @@
 model_params:
-  vocab_source: data/vocab_test.txt
-  vocab_target: data/vocab_test.txt
+  vocab_source: data/vocab_raw.txt
+  vocab_target: data/vocab_raw.txt
 input_pipeline_train:
   class: ParallelTextInputPipeline
   params:
     source_files:
       - data/twitter_test_sources.txt
     target_files:
-      - data/twitter_test_targets.txt
+      - data/twitter_test_sources.txt
 input_pipeline_dev:
   class: ParallelTextInputPipeline
   params:
       source_files:
         - data/twitter_test_sources.txt
       target_files:
-        - data/twitter_test_targets.txt
+        - data/twitter_test_sources.txt
 batch_size: 32
 train_steps: 1000
-output_dir: data/seq2seq
+output_dir: data/seq2seq_test

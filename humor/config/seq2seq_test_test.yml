@@ -1,6 +1,6 @@
 tasks:
   - class: DecodeText
-model_dir: data/seq2seq
+model_dir: data/seq2seq_test
 input_pipeline:
   class: ParallelTextInputPipeline
   params:
