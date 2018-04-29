@@ -100,5 +100,6 @@ ENV/
 # mypy
 .mypy_cache/
 
-humor/data/*
-humor/tfsave/*
+humor/data/
+humor/tfsave/
+humor/logs/

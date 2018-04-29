@@ -1,0 +1,8 @@
+tasks:
+  - class: DecodeText
+model_dir: data/toy
+input_pipeline:
+  class: ParallelTextInputPipeline
+  params:
+    source_files:
+      - data/toy/reverse_sources_test.txt

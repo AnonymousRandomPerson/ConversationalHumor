@@ -8,12 +8,8 @@
             "name": "run_extraction",
             "type": "python",
             "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
             "program": "${workspaceFolder}/humor/data/run_extraction.py",
-            "cwd": "${workspaceFolder}",
-            "env": {},
-            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}/humor",
             "debugOptions": [
                 "RedirectOutput"
             ]
@@ -22,10 +18,8 @@
             "name": "run_preprocessing",
             "type": "python",
             "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
             "program": "${workspaceFolder}/humor/data/run_preprocessing.py",
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/humor",
             "env": {},
             "envFile": "${workspaceFolder}/.env",
             "debugOptions": [
@@ -36,12 +30,8 @@
             "name": "basic_lstm",
             "type": "python",
             "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
             "program": "${workspaceFolder}/humor/basic_lstm.py",
-            "cwd": "${workspaceFolder}",
-            "env": {},
-            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}/humor",
             "debugOptions": [
                 "RedirectOutput"
             ],
@@ -54,12 +44,8 @@
             "name": "word_embeddings",
             "type": "python",
             "request": "launch",
-            "stopOnEntry": false,
-            "pythonPath": "${config:python.pythonPath}",
             "program": "${workspaceFolder}/humor/word_embeddings.py",
-            "cwd": "${workspaceFolder}",
-            "env": {},
-            "envFile": "${workspaceFolder}/.env",
+            "cwd": "${workspaceFolder}/humor",
             "debugOptions": [
                 "RedirectOutput"
             ],
@@ -67,6 +53,26 @@
                 "-c",
                 "text8"
             ]
+        },
+        {
+            "name": "train_seq2seq",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/humor/train_seq2seq.py",
+            "cwd": "${workspaceFolder}/humor",
+            "debugOptions": [
+                "RedirectOutput"
+            ],
+        },
+        {
+            "name": "test_seq2seq",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/humor/test_seq2seq.py",
+            "cwd": "${workspaceFolder}/humor",
+            "debugOptions": [
+                "RedirectOutput"
+            ],
         }
     ]
 }

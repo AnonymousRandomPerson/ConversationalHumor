@@ -1,10 +1,26 @@
 import os
+import sys
 from typing import TextIO
 
+# The root folder for code in this repository.
 ROOT_FOLDER = 'humor'
-DATA_FOLDER = os.path.join(ROOT_FOLDER, 'data')
-SAVED_MODEL_FOLDER = os.path.join(ROOT_FOLDER, 'tfsave')
+# The folder where data files are stored.
+DATA_FOLDER = 'data'
+# The folder where configuration files are stored.
+CONFIG_FOLDER = 'config'
+# The folder where log files are stored.
+LOG_FOLDER = 'logs'
+# The folder where saved TensorFlow models are stored.
+SAVED_MODEL_FOLDER = 'tfsave'
+
+# The extension for pickled files.
 PICKLE_EXTENSION = '.pickle'
+
+# The seq2seq submodule name.
+SEQ2SEQ_MODULE = 'seq2seq_sub'
+
+# The output file for seq2seq test output.
+TEST_OUTPUT_FILE = os.path.join(LOG_FOLDER, 'test_output.txt')
 
 def open_data_file(file_name: str, mode: str = 'r') -> TextIO:
     """
@@ -31,3 +47,9 @@ def open_binary_file(file_name: str, mode: str = 'rb'):
         An opened file for binary data.
     """
     return open(os.path.join(DATA_FOLDER, file_name), mode=mode)
+
+def add_seq2seq_module():
+    """
+    Add the seq2seq submodule to the path so that it can be imported.
+    """
+    sys.path.append(SEQ2SEQ_MODULE)
