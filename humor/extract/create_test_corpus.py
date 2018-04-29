@@ -1,11 +1,12 @@
 import argparse
 import random
 
-from ..utils.file_access import open_data_file
+from extract import split_sets
+from utils.file_access import open_data_file
 
 corpus_name = 'twitter_filtered.txt'
 save_file = 'twitter_test.txt'
-num_examples = 3
+num_examples = 10
 
 def run() -> None:
     """
@@ -30,6 +31,8 @@ def run() -> None:
     with open_data_file(save_file, 'w') as save:
         for example in save_examples:
             save.write(example)
+
+    split_sets.main(['-c', save_file])
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extract a subset of a corpus into another file')

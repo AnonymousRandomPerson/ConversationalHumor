@@ -18,6 +18,8 @@ PICKLE_EXTENSION = '.pickle'
 
 # The seq2seq submodule name.
 SEQ2SEQ_MODULE = 'seq2seq_sub'
+# The subword-nmt submodule name.
+SUBWORD_MODULE = 'subword_nmt'
 
 # The output file for seq2seq test output.
 TEST_OUTPUT_FILE = os.path.join(LOG_FOLDER, 'test_output.txt')
@@ -48,8 +50,11 @@ def open_binary_file(file_name: str, mode: str = 'rb'):
     """
     return open(os.path.join(DATA_FOLDER, file_name), mode=mode)
 
-def add_seq2seq_module():
+def add_module(module_name: str):
     """
-    Add the seq2seq submodule to the path so that it can be imported.
+    Adds the submodule to the path so that it can be imported.
+
+    Args:
+        module_name: The name of the submodule to be added to the path.
     """
-    sys.path.append(SEQ2SEQ_MODULE)
+    sys.path.append(module_name)

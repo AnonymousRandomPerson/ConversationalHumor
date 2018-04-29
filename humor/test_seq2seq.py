@@ -1,15 +1,23 @@
 import os
 import sys
 
-from utils.file_access import add_seq2seq_module, CONFIG_FOLDER, TEST_OUTPUT_FILE
+from utils.file_access import add_module, CONFIG_FOLDER, SEQ2SEQ_MODULE, TEST_OUTPUT_FILE
 
-add_seq2seq_module()
+add_module(SEQ2SEQ_MODULE)
 
-from seq2seq_sub.bin.infer import main
+import seq2seq_sub.bin.infer as infer
 
-config_string = os.path.join(CONFIG_FOLDER, 'seq2seq_test.yml')
+def main():
+    parser = argparse.ArgumentParser(description='Tests a seq2seq model.')
+    parser.add_argument('-c', '--config-file', required=True, help='The config file to use for the seq2seq testing.')
+    args = parser.parse_args()
 
-if os.path.exists(TEST_OUTPUT_FILE):
-    os.remove(TEST_OUTPUT_FILE)
+    config_string = os.path.join(CONFIG_FOLDER, args.config_file)
 
-main(sys.argv, config_string)
+    if os.path.exists(TEST_OUTPUT_FILE):
+        os.remove(TEST_OUTPUT_FILE)
+
+    infer.main(sys.argv, config_string)
+
+if __name__ == '__main__':
+    main()

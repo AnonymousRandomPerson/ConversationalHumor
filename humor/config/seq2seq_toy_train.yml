@@ -12,9 +12,9 @@ input_pipeline_dev:
   class: ParallelTextInputPipeline
   params:
       source_files:
-        - data/toy/reverse_sources_test.txt
+        - data/toy/reverse_sources_dev.txt
       target_files:
-        - data/toy/reverse_targets_test.txt
+        - data/toy/reverse_targets_dev.txt
 batch_size: 32
 train_steps: 1000
 output_dir: data/toy
