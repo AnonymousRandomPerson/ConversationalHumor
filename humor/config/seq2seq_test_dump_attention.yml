@@ -2,9 +2,9 @@ tasks:
   - class: DumpAttention
     params:
       output_dir: logs/dump_attention_test
-model_dir: data/toy
+model_dir: data/seq2seq_test
 input_pipeline:
   class: ParallelTextInputPipeline
   params:
     source_files:
-      - data/toy/reverse_sources_test.txt
+      - data/twitter_test_sources.txt
