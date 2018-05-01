@@ -4,7 +4,7 @@ import os
 from utils.file_access import open_data_file
 
 def main(args_list: list = None):
-    parser = argparse.ArgumentParser(description='Delete a saved model')
+    parser = argparse.ArgumentParser(description='Split a corpus into source and target files.')
     parser.add_argument('-c', '--corpus-file', required=True, help='The name of the corpus to get data from.')
     args = parser.parse_args(args_list)
 
