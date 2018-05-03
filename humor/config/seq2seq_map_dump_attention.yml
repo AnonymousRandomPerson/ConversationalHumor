@@ -1,8 +1,8 @@
 tasks:
   - class: DumpAttention
     params:
-      output_dir: logs/dump_attention_test
-model_dir: data/test
+      output_dir: logs/dump_attention_map
+model_dir: data/map
 input_pipeline:
   class: ParallelTextInputPipeline
   params:

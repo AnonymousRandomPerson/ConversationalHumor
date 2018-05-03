@@ -1,6 +1,11 @@
 tasks:
   - class: DecodeText
-model_dir: data/test
+  - class: DumpBeams
+    params:
+      file: logs/beams.npz
+model_dir: data/map
+model_params:
+  inference.beam_search.beam_width: 5
 input_pipeline:
   class: ParallelTextInputPipeline
   params:

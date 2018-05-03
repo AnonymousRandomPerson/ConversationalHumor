@@ -3,11 +3,11 @@ tasks:
   - class: DumpBeams
     params:
       file: logs/beams.npz
-model_dir: data/seq2seq_test
+model_dir: data/test
 model_params:
   inference.beam_search.beam_width: 5
 input_pipeline:
   class: ParallelTextInputPipeline
   params:
     source_files:
-      - data/twitter_test_sources.txt
+      - data/twitter_test_bpe_sources.txt

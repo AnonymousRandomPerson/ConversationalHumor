@@ -11,8 +11,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.contrib.rnn as rnn
 
-from .utils.file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
-from .word_embeddings import END_TOKEN, START_TOKEN, UNKNOWN_TOKEN
+from utils.file_access import add_corpus_argument, open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
+from word_embeddings import END_TOKEN, START_TOKEN, UNKNOWN_TOKEN
 
 EPOCHS = 100
 BATCH_SIZE = 1000
@@ -252,7 +252,8 @@ def run() -> None:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a basic LSTM.')
-    parser.add_argument('-c', '--corpus-file', help='The name of the corpus to get data from.')
+
+    add_corpus_argument(parser)
     parser.add_argument('-e', '--embedding-file', help='The name of the embedding file to load.')
     parser.add_argument('-m', '--model-file', help='The name of the model to load and save.')
     parser.add_argument('-t', '--test', help='Test the current model.', action='store_true')

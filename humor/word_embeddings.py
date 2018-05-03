@@ -12,7 +12,7 @@ from typing import List, Tuple
 import numpy as np
 import tensorflow as tf
 
-from .utils.file_access import open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
+from utils.file_access import add_corpus_argument, open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
 
 BATCH_SIZE = 128
 
@@ -378,7 +378,7 @@ def run_nce(wordData: WordData, graph: EmbeddingGraph) -> None:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Create a model for word embeddings.')
-    parser.add_argument('-c', '--corpus-file', help='The name of the corpus to get data from.')
+    add_corpus_argument(parser)
     parser.add_argument('-m', '--model-file', help='The name of the model to load and save.')
     parser.add_argument('-n', '--num-steps', type=int, help='The number of batches to train for')
     parser.add_argument('-t', '--test', help='Test the current model.', action='store_true')

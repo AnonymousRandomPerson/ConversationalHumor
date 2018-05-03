@@ -2,7 +2,7 @@ import argparse
 import random
 
 from extract import split_sets
-from utils.file_access import open_data_file
+from utils.file_access import add_corpus_argument, open_data_file
 
 corpus_name = 'twitter_filtered.txt'
 save_file = 'twitter_test.txt'
@@ -36,7 +36,7 @@ def run() -> None:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Extract a subset of a corpus into another file')
-    parser.add_argument('-c', '--corpus-file', help='The name of the corpus to get data from.')
+    add_corpus_argument(parser)
     parser.add_argument('-n', '--num-examples', type=int, help='The number of examples to retrieve from the corpus.')
     parser.add_argument('-s', '--save-file', help='The name of the file to save data to.')
     args = parser.parse_args()

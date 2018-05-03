@@ -1,8 +1,8 @@
 tasks:
   - class: DecodeText
-model_dir: data/seq2seq_filtered
+model_dir: data/filtered
 input_pipeline:
   class: ParallelTextInputPipeline
   params:
     source_files:
-      - data/twitter_filtered_sources.txt
+      - data/twitter_filtered_bpe_sources.txt

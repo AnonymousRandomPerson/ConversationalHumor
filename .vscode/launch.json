@@ -65,7 +65,7 @@
             ],
             "args": [
                 "-c",
-                "seq2seq_test_train.yml"
+                "seq2seq_dupe_train.yml"
             ]
         },
         {

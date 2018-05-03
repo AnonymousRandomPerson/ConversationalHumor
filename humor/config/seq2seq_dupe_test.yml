@@ -1,8 +1,8 @@
 tasks:
   - class: DecodeText
-model_dir: data/test
+model_dir: data/dupe
 input_pipeline:
   class: ParallelTextInputPipeline
   params:
     source_files:
-      - data/twitter_test_bpe_sources.txt
+      - data/dupe_bpe_sources.txt

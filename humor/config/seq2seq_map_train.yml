@@ -7,14 +7,14 @@ input_pipeline_train:
     source_files:
       - data/twitter_test_bpe_sources.txt
     target_files:
-      - data/twitter_test_bpe_sources.txt
+      - data/twitter_test_bpe_targets.txt
 input_pipeline_dev:
   class: ParallelTextInputPipeline
   params:
       source_files:
         - data/twitter_test_bpe_sources.txt
       target_files:
-        - data/twitter_test_bpe_sources.txt
+        - data/twitter_test_bpe_targets.txt
 batch_size: 32
-train_steps: 100000
-output_dir: data/test
+train_steps: 10000
+output_dir: data/map
