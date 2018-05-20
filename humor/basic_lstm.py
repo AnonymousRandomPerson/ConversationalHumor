@@ -12,6 +12,7 @@ import tensorflow as tf
 import tensorflow.contrib.rnn as rnn
 
 from utils.file_access import add_corpus_argument, open_data_file, PICKLE_EXTENSION, SAVED_MODEL_FOLDER
+from utils.word_manipulation import build_word_indices
 from word_embeddings import END_TOKEN, START_TOKEN, UNKNOWN_TOKEN
 
 EPOCHS = 100
@@ -27,24 +28,6 @@ final_model_path = os.path.join(SAVED_MODEL_FOLDER, 'final')
 corpus_name = 'twitter_test.txt'
 embedding_file = None
 test = True
-
-def build_dataset(words: List[str]) -> Tuple[Dict[str, int], Dict[int, str]]:
-    """
-    Builds a data set of word-index mappings.
-
-    Args:
-        words: The raw list of words in the data set.
-
-    Returns:
-        dictionary: A mapping of words to their indices.
-        reverse_dictionary: A mapping of indices to their words.
-    """
-    count = collections.Counter(words).most_common()
-    dictionary = dict()
-    for word, _ in count:
-        dictionary[word] = len(dictionary)
-    reverse_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-    return dictionary, reverse_dictionary
 
 def create_rnn(x: tf.Tensor, weights: Dict[str, tf.Variable], biases: Dict[str, tf.Variable]) -> Tuple[rnn.BasicLSTMCell, tf.Tensor]:
     """
@@ -94,7 +77,7 @@ def run() -> None:
             sentence_length = max(sentence_length, len(line))
     words = punch_lines.split(' ')
 
-    dictionary, reverse_dictionary = build_dataset(words)
+    dictionary, reverse_dictionary = build_word_indices(words)
 
     end_key = dictionary[END_TOKEN]
     start_key = dictionary[START_TOKEN]

@@ -16,5 +16,5 @@ input_pipeline_dev:
       target_files:
         - data/toy/reverse_targets_dev.txt
 batch_size: 32
-train_steps: 1000
+train_steps: 1
 output_dir: data/toy

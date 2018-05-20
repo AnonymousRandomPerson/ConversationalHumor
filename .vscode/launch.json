@@ -65,7 +65,7 @@
             ],
             "args": [
                 "-c",
-                "seq2seq_dupe_train.yml"
+                "seq2seq_filtered_train.yml"
             ]
         },
         {
@@ -79,7 +79,23 @@
             ],
             "args": [
                 "-c",
-                "seq2seq_test_test.yml"
+                "seq2seq_filtered_test.yml"
+            ]
+        },
+        {
+            "name": "qlearn",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/humor/qlearn.py",
+            "cwd": "${workspaceFolder}/humor",
+            "debugOptions": [
+                "RedirectOutput"
+            ],
+            "args": [
+                "-m",
+                "test_rl",
+                "-v",
+                "rl_test.txt"
             ]
         }
     ]

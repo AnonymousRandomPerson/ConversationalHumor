@@ -19,7 +19,8 @@ def main():
 
     example_config_path = os.path.join(SEQ2SEQ_MODULE, 'example_configs')
 
-    config_names = ['nmt_small.yml', 'train_seq2seq.yml', 'text_metrics_bpe.yml']
+    config_names = ['nmt_small.yml', 'train_seq2seq.yml']
+    config_names.append('text_metrics_bpe.yml')
     config_paths = [os.path.join(example_config_path, config_name) for config_name in config_names]
     config_paths.append(os.path.join(CONFIG_FOLDER, args.config_file))
 

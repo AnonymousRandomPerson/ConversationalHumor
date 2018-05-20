@@ -16,5 +16,5 @@ input_pipeline_dev:
       target_files:
         - data/twitter_filtered_bpe_targets.txt
 batch_size: 32
-train_steps: 1000
+train_steps: 100000
 output_dir: data/filtered
