@@ -103,3 +103,4 @@ ENV/
 humor/data/
 humor/tfsave/
 humor/logs/
+humor/glove/*.txt

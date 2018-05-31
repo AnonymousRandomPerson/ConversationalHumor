@@ -15,11 +15,17 @@ def main():
 
     parser = argparse.ArgumentParser(description='Trains a seq2seq model.')
     parser.add_argument('-c', '--config-file', required=True, help='The config file to use for the seq2seq training.')
+    parser.add_argument('-s', '--size-file', help='The network size file to use for the seq2seq training.')
     args = parser.parse_args()
 
     example_config_path = os.path.join(SEQ2SEQ_MODULE, 'example_configs')
 
-    config_names = ['nmt_small.yml', 'train_seq2seq.yml']
+    config_names = ['train_seq2seq.yml']
+    if args.size_file:
+        size = args.size_file
+    else:
+        size = 'small'
+    config_names.append('nmt_' + size + '.yml')
     config_names.append('text_metrics_bpe.yml')
     config_paths = [os.path.join(example_config_path, config_name) for config_name in config_names]
     config_paths.append(os.path.join(CONFIG_FOLDER, args.config_file))

@@ -13,12 +13,16 @@ CONFIG_FOLDER = 'config'
 LOG_FOLDER = 'logs'
 # The folder where saved TensorFlow models are stored.
 SAVED_MODEL_FOLDER = 'tfsave'
+# The folder where GloVe files are stored.
+GLOVE_FOLDER = 'glove'
 
 # The extension for pickled files.
 PICKLE_EXTENSION = '.pickle'
 # The extension for plain text files.
 TEXT_EXTENSION = '.txt'
 
+# The subword-nmt submodule name.
+CHATBOT_MODULE = 'chatbot_rnn'
 # The seq2seq submodule name.
 SEQ2SEQ_MODULE = 'seq2seq_sub'
 # The subword-nmt submodule name.
@@ -31,6 +35,9 @@ TEST_OUTPUT_FILE = os.path.join(LOG_FOLDER, 'test_output' + TEXT_EXTENSION)
 BPE_PREFIX = 'bpe'
 # The prefix for all vocabulary files.
 VOCAB_PREFIX = 'vocab'
+
+# The file containing a pretrained GloVe model.
+GLOVE_FILE = os.path.join(GLOVE_FOLDER, 'glove.twitter.27B.25d.txt')
 
 def open_data_file(file_name: str, mode: str = 'r') -> TextIO:
     """

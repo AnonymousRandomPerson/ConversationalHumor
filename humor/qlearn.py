@@ -1,13 +1,14 @@
 # https://medium.com/emergent-future/simple-reinforcement-learning-with-tensorflow-part-0-q-learning-with-tables-and-neural-networks-d195264329d0
 
 import argparse
-import numpy as np
 import os
-import random
+import numpy as np
 import tensorflow as tf
 
-from rl.test_dialogue import TestConversation
-from utils.file_access import DATA_FOLDER,SAVED_MODEL_FOLDER
+from glove.glove_embeddings import GloveEmbedding
+from rl.conversation import TestConversation
+from rl.evaluated_conversation import EvaluatedConversation
+from utils.file_access import DATA_FOLDER, GLOVE_FILE, SAVED_MODEL_FOLDER
 from utils.word_manipulation import build_word_indices
 
 def run(args: argparse.Namespace) -> None:
@@ -21,12 +22,14 @@ def run(args: argparse.Namespace) -> None:
 
     vocab_path = os.path.join(DATA_FOLDER, args.vocab_file)
 
+    glove = GloveEmbedding(GLOVE_FILE)
+
     with open(vocab_path) as vocab_file:
         vocab = [word.rstrip('\n') for word in vocab_file.readlines()]
-
-    env = TestConversation(vocab)
+    vocab.append('')
 
     dictionary, reverse_dictionary = build_word_indices(vocab)
+    vector_dict = {glove.word_embeddings[word] for word in dictionary}
 
     max_init_value = 0.01
     num_inputs = len(vocab)
@@ -37,7 +40,7 @@ def run(args: argparse.Namespace) -> None:
     inputs1 = tf.placeholder(shape=[1, num_inputs],dtype=tf.float32)
     weights = tf.Variable(tf.random_uniform([num_inputs, num_outputs], 0, max_init_value))
     biases = tf.Variable(tf.random_uniform([num_inputs], 0, max_init_value))
-    q_out =  tf.nn.relu(tf.add(tf.matmul(inputs1, weights), biases))
+    q_out = tf.nn.relu(tf.add(tf.matmul(inputs1, weights), biases))
     predict = tf.argmax(q_out,1)
 
     #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
@@ -51,11 +54,13 @@ def run(args: argparse.Namespace) -> None:
     # Set learning parameters
     y = .99
     e = 0.1
-    num_episodes = 50
+    num_episodes = 500
     num_test = 100
 
     with tf.Session() as sess:
         sess.run(init)
+
+        env = EvaluatedConversation(sess)
 
         saver = tf.train.Saver([weights, biases], save_relative_paths=True)
         if os.path.exists(save_model_path + '.index'):
@@ -78,7 +83,9 @@ def run(args: argparse.Namespace) -> None:
             r_list = []
             for i in range(num_episodes):
                 #Reset environment and get first new observation
-                s = dictionary[env.start_conversation()]
+                first_message = env.start_conversation()
+                s = [dictionary[word] for word in first_message.split(' ')]
+                s = s[0]
                 r_all = 0
                 d = False
                 j = 0
@@ -92,7 +99,8 @@ def run(args: argparse.Namespace) -> None:
                     #Get new state and reward from environment
                     response = reverse_dictionary[a[0]]
                     s1, r, d = env.respond(response)
-                    s1 = dictionary[s1]
+                    s1 = [dictionary[word] for word in s1.split(' ')]
+                    s1 = s1[0]
 
                     if is_test:
                         if not i:

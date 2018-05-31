@@ -4,3 +4,6 @@
 [submodule "humor/subword-nmt"]
 	path = humor/subword_nmt
 	url = https://github.com/AnonymousRandomPerson/subword-nmt
+[submodule "humor/chatbot_rnn"]
+	path = humor/chatbot_rnn
+	url = /humor/chatbot_rnn

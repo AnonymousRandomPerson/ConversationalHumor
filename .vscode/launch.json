@@ -97,6 +97,21 @@
                 "-v",
                 "rl_test.txt"
             ]
+        },
+        {
+            "name": "chatbot",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/humor/chatbot_rnn/chatbot.py",
+            "cwd": "${workspaceFolder}/humor",
+            "module": "chatbot_rnn.chatbot",
+            "debugOptions": [
+                "RedirectOutput"
+            ],
+            "args": [
+                "--save_dir",
+                "chatbot_rnn/models/reddit"
+            ]
         }
     ]
 }
