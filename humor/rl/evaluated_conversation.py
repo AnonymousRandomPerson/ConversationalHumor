@@ -16,6 +16,7 @@ class EvaluatedConversation(Conversation):
             sess: The Tensorflow session to use with the chatbot.
         """
         self.chatbot = chatbots.NormalChatbot(sess, 'Other')
+        self.conversation = []
 
     def start_conversation(self) -> str:
         """
@@ -36,7 +37,9 @@ class EvaluatedConversation(Conversation):
         Returns:
             The next message in the conversation.
         """
-        return self.chatbot.respond(response)
+        chatbot_response = self.chatbot.respond(response)
+        self.conversation.append(chatbot_response)
+        return chatbot_response
 
     def evaluate_response(self, response: str) -> float:
         """
@@ -47,7 +50,10 @@ class EvaluatedConversation(Conversation):
 
         Returns: The reward for the response.
         """
-        return 0
+        self.conversation.append(response)
+        if response == 'Test':
+            return 0
+        return 10
 
     def is_ended(self) -> bool:
         """

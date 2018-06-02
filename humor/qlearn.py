@@ -20,15 +20,7 @@ def run(args: argparse.Namespace) -> None:
     """
     save_model_path = os.path.join(SAVED_MODEL_FOLDER, args.model_file)
 
-    vocab_path = os.path.join(DATA_FOLDER, args.vocab_file)
-
     glove = GloveEmbedding(GLOVE_FILE)
-
-    with open(vocab_path) as vocab_file:
-        vocab = [word.rstrip('\n') for word in vocab_file.readlines()]
-    vocab.append('')
-
-    dictionary, reverse_dictionary = build_word_indices(vocab)
 
     max_init_value = 0.01
     num_inputs = 25
@@ -54,6 +46,7 @@ def run(args: argparse.Namespace) -> None:
     e = 0.5
     num_episodes = 500
     num_test = 100
+    max_steps = 99
 
     with tf.Session() as sess:
         sess.run(init)
@@ -85,7 +78,7 @@ def run(args: argparse.Namespace) -> None:
 
             responders = [normal_chatbot, test_bot]
 
-            for i in range(num_episodes):
+            for _ in range(num_episodes):
                 #Reset environment and get first new observation
                 last_sentence = env.start_conversation()
                 s = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
@@ -94,7 +87,7 @@ def run(args: argparse.Namespace) -> None:
                 d = False
                 j = 0
                 #The Q-Network
-                while j < 99:
+                while j < max_steps:
                     j += 1
                     #Choose an action by greedily (with e chance of random action) from the Q-network
                     a, all_q = sess.run([predict, q_out],feed_dict={inputs1:s})
@@ -143,7 +136,6 @@ if __name__ == '__main__':
 
     parser.add_argument('-m', '--model-file', required=True, help='The name of the model to load and save.')
     parser.add_argument('-t', '--test', default=False, help='Test the current model.', action='store_true')
-    parser.add_argument('-v', '--vocab-file', required=True, help='The name of the model to load and save.')
     args, _ = parser.parse_known_args()
 
     run(args)
