@@ -19,7 +19,7 @@ class EvaluatedConversation(Conversation):
         Args:
             sess: The Tensorflow session to use with the chatbot.
         """
-        self.chatbot = chatbot.get_chatbot(sess)
+        self.chatbot = chatbot.get_chatbot(sess, "Other")
 
     def start_conversation(self) -> str:
         """
@@ -28,7 +28,7 @@ class EvaluatedConversation(Conversation):
         Returns:
             The first message in the conversation.
         """
-        return self.choose_message()
+        return self.choose_message('')
 
     def choose_message(self, response: str) -> str:
         """

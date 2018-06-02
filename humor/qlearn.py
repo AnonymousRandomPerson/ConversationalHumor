@@ -5,6 +5,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
+import chatbot_rnn.chatbot as chatbot
 from glove.glove_embeddings import GloveEmbedding
 from rl.conversation import TestConversation
 from rl.evaluated_conversation import EvaluatedConversation
@@ -29,17 +30,16 @@ def run(args: argparse.Namespace) -> None:
     vocab.append('')
 
     dictionary, reverse_dictionary = build_word_indices(vocab)
-    vector_dict = {glove.word_embeddings[word] for word in dictionary}
 
     max_init_value = 0.01
-    num_inputs = len(vocab)
-    num_outputs = len(vocab)
+    num_inputs = 25
+    num_outputs = 4
     identity_mat = np.identity(num_inputs)
 
     #These lines establish the feed-forward part of the network used to choose actions
     inputs1 = tf.placeholder(shape=[1, num_inputs],dtype=tf.float32)
     weights = tf.Variable(tf.random_uniform([num_inputs, num_outputs], 0, max_init_value))
-    biases = tf.Variable(tf.random_uniform([num_inputs], 0, max_init_value))
+    biases = tf.Variable(tf.random_uniform([num_outputs], 0, max_init_value))
     q_out = tf.nn.relu(tf.add(tf.matmul(inputs1, weights), biases))
     predict = tf.argmax(q_out,1)
 
@@ -81,11 +81,14 @@ def run(args: argparse.Namespace) -> None:
             current_epsilon = e
             j_list = []
             r_list = []
+
+            normal_chatbot = chatbot.get_chatbot(sess, "Normal")
+
             for i in range(num_episodes):
                 #Reset environment and get first new observation
-                first_message = env.start_conversation()
-                s = [dictionary[word] for word in first_message.split(' ')]
-                s = s[0]
+                last_sentence = env.start_conversation()
+                s = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
+                s = np.array([s[0]])
                 r_all = 0
                 d = False
                 j = 0
@@ -93,27 +96,27 @@ def run(args: argparse.Namespace) -> None:
                 while j < 99:
                     j += 1
                     #Choose an action by greedily (with e chance of random action) from the Q-network
-                    a, all_q = sess.run([predict, q_out],feed_dict={inputs1:identity_mat[s:s+1]})
+                    a, all_q = sess.run([predict, q_out],feed_dict={inputs1:s})
                     if not is_test and np.random.rand(1) < current_epsilon:
-                        a[0] = np.random.randint(0, len(vocab))
+                        a[0] = np.random.randint(0, num_outputs)
                     #Get new state and reward from environment
-                    response = reverse_dictionary[a[0]]
-                    s1, r, d = env.respond(response)
-                    s1 = [dictionary[word] for word in s1.split(' ')]
-                    s1 = s1[0]
+                    response = normal_chatbot.respond(last_sentence)
+                    last_sentence, r, d = env.respond(response)
+                    s1 = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
+                    s1 = np.array([s1[0]])
 
                     if is_test:
                         if not i:
                             print(reverse_dictionary[s], response)
                     else:
                         #Obtain the Q' values by feeding the new state through our network
-                        q1 = sess.run(q_out,feed_dict={inputs1:identity_mat[s1:s1+1]})
+                        q1 = sess.run(q_out,feed_dict={inputs1:s1})
                         #Obtain maxQ' and set our target value for chosen action.
                         max_q1 = np.max(q1)
                         target_q = all_q
                         target_q[0, a[0]] = r + y * max_q1
                         #Train our network using target and predicted Q values
-                        _, _ = sess.run([update_model, weights],feed_dict={inputs1:identity_mat[s:s+1], next_q:target_q})
+                        _, _ = sess.run([update_model, weights],feed_dict={inputs1:s, next_q:target_q})
                     r_all += r
                     s = s1
                     if d:
@@ -140,6 +143,6 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--model-file', required=True, help='The name of the model to load and save.')
     parser.add_argument('-t', '--test', default=False, help='Test the current model.', action='store_true')
     parser.add_argument('-v', '--vocab-file', required=True, help='The name of the model to load and save.')
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     run(args)
