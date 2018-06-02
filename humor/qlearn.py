@@ -5,9 +5,8 @@ import os
 import numpy as np
 import tensorflow as tf
 
-import chatbot_rnn.chatbot as chatbot
 from glove.glove_embeddings import GloveEmbedding
-from rl.conversation import TestConversation
+import rl.chatbots as chatbots
 from rl.evaluated_conversation import EvaluatedConversation
 from utils.file_access import DATA_FOLDER, GLOVE_FILE, SAVED_MODEL_FOLDER
 from utils.word_manipulation import build_word_indices
@@ -33,15 +32,14 @@ def run(args: argparse.Namespace) -> None:
 
     max_init_value = 0.01
     num_inputs = 25
-    num_outputs = 4
-    identity_mat = np.identity(num_inputs)
+    num_outputs = 2
 
     #These lines establish the feed-forward part of the network used to choose actions
-    inputs1 = tf.placeholder(shape=[1, num_inputs],dtype=tf.float32)
+    inputs1 = tf.placeholder(shape=[1, num_inputs], dtype=tf.float32)
     weights = tf.Variable(tf.random_uniform([num_inputs, num_outputs], 0, max_init_value))
     biases = tf.Variable(tf.random_uniform([num_outputs], 0, max_init_value))
     q_out = tf.nn.relu(tf.add(tf.matmul(inputs1, weights), biases))
-    predict = tf.argmax(q_out,1)
+    predict = tf.argmax(q_out, 1)
 
     #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
     next_q = tf.placeholder(shape=[1, num_outputs],dtype=tf.float32)
@@ -53,7 +51,7 @@ def run(args: argparse.Namespace) -> None:
 
     # Set learning parameters
     y = .99
-    e = 0.1
+    e = 0.5
     num_episodes = 500
     num_test = 100
 
@@ -82,7 +80,10 @@ def run(args: argparse.Namespace) -> None:
             j_list = []
             r_list = []
 
-            normal_chatbot = chatbot.get_chatbot(sess, "Normal")
+            normal_chatbot = chatbots.NormalChatbot(sess, 'Normal')
+            test_bot = chatbots.TestChatbot()
+
+            responders = [normal_chatbot, test_bot]
 
             for i in range(num_episodes):
                 #Reset environment and get first new observation
@@ -97,33 +98,33 @@ def run(args: argparse.Namespace) -> None:
                     j += 1
                     #Choose an action by greedily (with e chance of random action) from the Q-network
                     a, all_q = sess.run([predict, q_out],feed_dict={inputs1:s})
+                    a = a[0]
                     if not is_test and np.random.rand(1) < current_epsilon:
-                        a[0] = np.random.randint(0, num_outputs)
+                        a = np.random.randint(0, num_outputs)
                     #Get new state and reward from environment
-                    response = normal_chatbot.respond(last_sentence)
+                    response = responders[a].respond(last_sentence)
+
                     last_sentence, r, d = env.respond(response)
+
                     s1 = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
                     s1 = np.array([s1[0]])
 
-                    if is_test:
-                        if not i:
-                            print(reverse_dictionary[s], response)
-                    else:
+                    if not is_test:
                         #Obtain the Q' values by feeding the new state through our network
                         q1 = sess.run(q_out,feed_dict={inputs1:s1})
                         #Obtain maxQ' and set our target value for chosen action.
                         max_q1 = np.max(q1)
                         target_q = all_q
-                        target_q[0, a[0]] = r + y * max_q1
+                        target_q[0, a] = r + y * max_q1
                         #Train our network using target and predicted Q values
                         _, _ = sess.run([update_model, weights],feed_dict={inputs1:s, next_q:target_q})
                     r_all += r
                     s = s1
-                    if d:
-                        if not is_test:
-                            #Reduce chance of random action as we train the model.
-                            current_epsilon = 1./((i/50) + 10)
-                        break
+                    # if d:
+                    #     if not is_test:
+                    #         #Reduce chance of random action as we train the model.
+                    #         current_epsilon = 1./((i/50) + 10)
+                    #     break
                 j_list.append(j)
                 r_list.append(r_all)
             return j_list, r_list

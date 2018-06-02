@@ -93,9 +93,11 @@
             ],
             "args": [
                 "-m",
-                "test_rl",
+                "evaluated_rl",
                 "-v",
-                "rl_test.txt"
+                "rl_test.txt",
+                "--save_dir",
+                "chatbot_rnn/models/reddit"
             ]
         },
         {

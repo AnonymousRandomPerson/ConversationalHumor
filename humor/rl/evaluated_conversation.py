@@ -1,11 +1,7 @@
 import tensorflow as tf
 
+import rl.chatbots as chatbots
 from rl.conversation import Conversation
-from utils.file_access import add_module, CHATBOT_MODULE
-
-add_module(CHATBOT_MODULE)
-
-import chatbot_rnn.chatbot as chatbot
 
 class EvaluatedConversation(Conversation):
     """
@@ -19,7 +15,7 @@ class EvaluatedConversation(Conversation):
         Args:
             sess: The Tensorflow session to use with the chatbot.
         """
-        self.chatbot = chatbot.get_chatbot(sess, "Other")
+        self.chatbot = chatbots.NormalChatbot(sess, 'Other')
 
     def start_conversation(self) -> str:
         """
