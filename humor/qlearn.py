@@ -46,12 +46,10 @@ def run(args: argparse.Namespace) -> None:
     e = 0.5
     num_episodes = 500
     num_test = 100
-    max_steps = 99
+    max_steps = 20
 
     with tf.Session() as sess:
         sess.run(init)
-
-        env = EvaluatedConversation(sess)
 
         saver = tf.train.Saver([weights, biases], save_relative_paths=True)
         if os.path.exists(save_model_path + '.index'):
@@ -69,6 +67,8 @@ def run(args: argparse.Namespace) -> None:
                 j_list: A list of the durations of each session (number of actions).
                 r_list: A list of total rewards for each session.
             """
+            env = EvaluatedConversation(sess)
+
             current_epsilon = e
             j_list = []
             r_list = []
@@ -84,7 +84,6 @@ def run(args: argparse.Namespace) -> None:
                 s = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
                 s = np.array([s[0]])
                 r_all = 0
-                d = False
                 j = 0
                 #The Q-Network
                 while j < max_steps:
@@ -113,11 +112,6 @@ def run(args: argparse.Namespace) -> None:
                         _, _ = sess.run([update_model, weights],feed_dict={inputs1:s, next_q:target_q})
                     r_all += r
                     s = s1
-                    # if d:
-                    #     if not is_test:
-                    #         #Reduce chance of random action as we train the model.
-                    #         current_epsilon = 1./((i/50) + 10)
-                    #     break
                 j_list.append(j)
                 r_list.append(r_all)
             return j_list, r_list

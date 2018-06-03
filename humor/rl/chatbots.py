@@ -38,7 +38,7 @@ class ChatbotWrapper(object):
 
 class TestChatbot(ChatbotWrapper):
     """
-    A pretrained chatbot with no additional humor.
+    A testing chatbot that only outputs 'Test'.
     """
 
     def __init__(self):
@@ -60,7 +60,8 @@ class TestChatbot(ChatbotWrapper):
             The chatbot's response to the user message.
         """
         ChatbotWrapper.respond(self, user_input, print_response)
-        print(self.response)
+        if print_response:
+            print(self.response)
         return self.response
 
 class NormalChatbot(ChatbotWrapper):
