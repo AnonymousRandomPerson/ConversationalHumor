@@ -8,8 +8,7 @@ import tensorflow as tf
 from glove.glove_embeddings import GloveEmbedding
 import rl.chatbots as chatbots
 from rl.evaluated_conversation import EvaluatedConversation
-from utils.file_access import DATA_FOLDER, GLOVE_FILE, SAVED_MODEL_FOLDER
-from utils.word_manipulation import build_word_indices
+from utils.file_access import GLOVE_FILE, SAVED_MODEL_FOLDER
 
 def run(args: argparse.Namespace) -> None:
     """
@@ -34,7 +33,7 @@ def run(args: argparse.Namespace) -> None:
     predict = tf.argmax(q_out, 1)
 
     #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
-    next_q = tf.placeholder(shape=[1, num_outputs],dtype=tf.float32)
+    next_q = tf.placeholder(shape=[1, num_outputs], dtype=tf.float32)
     loss = tf.reduce_sum(tf.square(next_q - q_out))
     trainer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
     update_model = trainer.minimize(loss)
@@ -46,7 +45,7 @@ def run(args: argparse.Namespace) -> None:
     e = 0.5
     num_episodes = 500
     num_test = 100
-    max_steps = 20
+    max_steps = 2
 
     with tf.Session() as sess:
         sess.run(init)
@@ -67,36 +66,38 @@ def run(args: argparse.Namespace) -> None:
                 j_list: A list of the durations of each session (number of actions).
                 r_list: A list of total rewards for each session.
             """
-            env = EvaluatedConversation(sess)
 
             current_epsilon = e
             j_list = []
             r_list = []
 
-            normal_chatbot = chatbots.NormalChatbot(sess, 'Normal')
-            test_bot = chatbots.TestChatbot()
-
-            responders = [normal_chatbot, test_bot]
-
             for _ in range(num_episodes):
                 #Reset environment and get first new observation
+                env = EvaluatedConversation(sess)
+                normal_chatbot = chatbots.NormalChatbot(sess, 'Normal')
+                test_bot = chatbots.TestChatbot()
+
+                responders = [normal_chatbot, test_bot]
+
                 last_sentence = env.start_conversation()
                 s = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
                 s = np.array([s[0]])
                 r_all = 0
                 j = 0
+                end = False
                 #The Q-Network
-                while j < max_steps:
+                while j < max_steps and not end:
                     j += 1
-                    #Choose an action by greedily (with e chance of random action) from the Q-network
+                    #Choose an action greedily (with e chance of random action) from the Q-network
                     a, all_q = sess.run([predict, q_out],feed_dict={inputs1:s})
+                    print("All q-values:", all_q)
                     a = a[0]
                     if not is_test and np.random.rand(1) < current_epsilon:
                         a = np.random.randint(0, num_outputs)
                     #Get new state and reward from environment
                     response = responders[a].respond(last_sentence)
 
-                    last_sentence, r, d = env.respond(response)
+                    last_sentence, r, end = env.respond(response)
 
                     s1 = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
                     s1 = np.array([s1[0]])
