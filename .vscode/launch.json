@@ -112,6 +112,27 @@
                 "--save_dir",
                 "chatbot_rnn/models/reddit"
             ]
+        },
+        {
+            "name": "train_chatbot",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/humor/chatbot_rnn/chatbot.py",
+            "cwd": "${workspaceFolder}/humor",
+            "module": "chatbot_rnn.train",
+            "debugOptions": [
+                "RedirectOutput"
+            ],
+            "args": [
+                "--data_dir",
+                "chatbot_rnn/data/test",
+                "--save_dir",
+                "chatbot_rnn/models/reddit_test",
+                "--batch_size",
+                "1",
+                "--set_learning_rate",
+                "1e-2"
+            ]
         }
     ]
 }

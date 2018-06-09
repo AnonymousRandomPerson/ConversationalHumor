@@ -10,12 +10,9 @@ import rl.chatbots as chatbots
 from rl.evaluated_conversation import EvaluatedConversation
 from utils.file_access import GLOVE_FILE, SAVED_MODEL_FOLDER
 
-def run(args: argparse.Namespace) -> None:
+def run() -> None:
     """
     Runs the q-learner.
-
-    Args:
-        args: Command-line arguments to use.
     """
     save_model_path = os.path.join(SAVED_MODEL_FOLDER, args.model_file)
 
@@ -133,4 +130,4 @@ if __name__ == '__main__':
     parser.add_argument('-t', '--test', default=False, help='Test the current model.', action='store_true')
     args, _ = parser.parse_known_args()
 
-    run(args)
+    run()
