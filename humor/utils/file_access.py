@@ -31,6 +31,9 @@ SUBWORD_MODULE = 'subword_nmt'
 # The output file for seq2seq test output.
 TEST_OUTPUT_FILE = os.path.join(LOG_FOLDER, 'test_output' + TEXT_EXTENSION)
 
+# The file containing humor values for words.
+HUMOR_VALUES_FILE = os.path.join(DATA_FOLDER, 'humor_dataset.csv')
+
 # The prefix for all BPE files.
 BPE_PREFIX = 'bpe'
 # The prefix for all vocabulary files.

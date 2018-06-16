@@ -20,7 +20,7 @@ def run() -> None:
 
     max_init_value = 0.01
     num_inputs = 25
-    num_outputs = 2
+    num_outputs = 1
 
     #These lines establish the feed-forward part of the network used to choose actions
     inputs1 = tf.placeholder(shape=[1, num_inputs], dtype=tf.float32)
@@ -72,9 +72,9 @@ def run() -> None:
                 #Reset environment and get first new observation
                 env = EvaluatedConversation(sess)
                 normal_chatbot = chatbots.NormalChatbot(sess, 'Normal')
-                test_bot = chatbots.TestChatbot()
+                replace_chatbot = chatbots.ReplaceChatbot(sess, 'Replace')
 
-                responders = [normal_chatbot, test_bot]
+                responders = [replace_chatbot]
 
                 last_sentence = env.start_conversation()
                 s = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
