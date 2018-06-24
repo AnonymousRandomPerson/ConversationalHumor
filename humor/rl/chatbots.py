@@ -124,7 +124,12 @@ class ReplaceChatbot(ChatbotWrapper):
         """
         ChatbotWrapper.respond(self, user_input, print_response)
 
-        words = nltk.tokenize.word_tokenize(user_input)
-        print(words)
+        response = self.chatbot.respond(user_input, print_response)
 
-        return self.chatbot.respond(user_input, print_response)
+        words = nltk.word_tokenize(response)
+
+        if len(words) > 1:
+            response = response.replace(words[1], 'banana')
+            print(response)
+
+        return response
