@@ -139,7 +139,8 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/humor/DeepQA/main.py",
-            "cwd": "${workspaceFolder}/humor/DeepQA",
+            "cwd": "${workspaceFolder}/humor",
+            "module": "DeepQA.main",
             "debugOptions": [
                 "RedirectOutput"
             ],
@@ -147,7 +148,9 @@
                 "--modelTag",
                 "cornell",
                 "--test",
-                "interactive"
+                "interactive",
+                "--rootDir",
+                "DeepQA"
             ]
         },
     ]
