@@ -1,8 +1,0 @@
-tasks:
-  - class: DecodeText
-model_dir: data/dupe
-input_pipeline:
-  class: ParallelTextInputPipeline
-  params:
-    source_files:
-      - data/dupe_bpe_sources.txt

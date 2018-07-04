@@ -1,8 +1,0 @@
-tasks:
-  - class: DecodeText
-model_dir: data/map
-input_pipeline:
-  class: ParallelTextInputPipeline
-  params:
-    source_files:
-      - data/twitter_test_bpe_sources.txt

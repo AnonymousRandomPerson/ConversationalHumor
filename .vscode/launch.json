@@ -5,84 +5,6 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "run_extraction",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/humor/data/run_extraction.py",
-            "cwd": "${workspaceFolder}/humor",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "run_preprocessing",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/humor/data/run_preprocessing.py",
-            "cwd": "${workspaceFolder}/humor",
-            "env": {},
-            "envFile": "${workspaceFolder}/.env",
-            "debugOptions": [
-                "RedirectOutput"
-            ]
-        },
-        {
-            "name": "basic_lstm",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/humor/basic_lstm.py",
-            "cwd": "${workspaceFolder}/humor",
-            "debugOptions": [
-                "RedirectOutput"
-            ],
-            "args": [
-                "-e",
-                "embeddings"
-            ]
-        },
-        {
-            "name": "word_embeddings",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/humor/word_embeddings.py",
-            "cwd": "${workspaceFolder}/humor",
-            "debugOptions": [
-                "RedirectOutput"
-            ],
-            "args": [
-                "-c",
-                "text8"
-            ]
-        },
-        {
-            "name": "train_seq2seq",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/humor/train_seq2seq.py",
-            "cwd": "${workspaceFolder}/humor",
-            "debugOptions": [
-                "RedirectOutput"
-            ],
-            "args": [
-                "-c",
-                "seq2seq_filtered_train.yml"
-            ]
-        },
-        {
-            "name": "test_seq2seq",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/humor/test_seq2seq.py",
-            "cwd": "${workspaceFolder}/humor",
-            "debugOptions": [
-                "RedirectOutput"
-            ],
-            "args": [
-                "-c",
-                "seq2seq_filtered_test.yml"
-            ]
-        },
-        {
             "name": "qlearn",
             "type": "python",
             "request": "launch",
@@ -96,42 +18,6 @@
                 "evaluated_rl",
                 "--save_dir",
                 "chatbot_rnn/models/reddit"
-            ]
-        },
-        {
-            "name": "chatbot",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/humor/chatbot_rnn/chatbot.py",
-            "cwd": "${workspaceFolder}/humor",
-            "module": "chatbot_rnn.chatbot",
-            "debugOptions": [
-                "RedirectOutput"
-            ],
-            "args": [
-                "--save_dir",
-                "chatbot_rnn/models/reddit"
-            ]
-        },
-        {
-            "name": "train_chatbot",
-            "type": "python",
-            "request": "launch",
-            "program": "${workspaceFolder}/humor/chatbot_rnn/chatbot.py",
-            "cwd": "${workspaceFolder}/humor",
-            "module": "chatbot_rnn.train",
-            "debugOptions": [
-                "RedirectOutput"
-            ],
-            "args": [
-                "--data_dir",
-                "chatbot_rnn/data/test",
-                "--save_dir",
-                "chatbot_rnn/models/reddit_test",
-                "--batch_size",
-                "1",
-                "--set_learning_rate",
-                "1e-2"
             ]
         },
         {
