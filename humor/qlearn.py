@@ -40,7 +40,7 @@ def run() -> None:
         trainer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
         update_model = trainer.minimize(loss)
 
-        init = tf.initialize_all_variables()
+        init = tf.variables_initializer([weights, biases])
 
         # Set learning parameters
         y = .99
