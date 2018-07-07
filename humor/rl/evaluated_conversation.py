@@ -25,7 +25,7 @@ class EvaluatedConversation(Conversation):
         Returns:
             The first message in the conversation.
         """
-        return self.choose_message('')
+        return 'Hello.'
 
     def choose_message(self, response: str) -> str:
         """

@@ -1,6 +1,3 @@
-[submodule "humor/chatbot_rnn"]
-	path = humor/chatbot_rnn
-	url = /humor/chatbot_rnn
 [submodule "humor/DeepQA"]
 	path = humor/DeepQA
 	url = https://github.com/Conchylicultor/DeepQA

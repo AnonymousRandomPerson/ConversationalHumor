@@ -6,7 +6,8 @@ from utils.file_access import add_module, CHATBOT_MODULE
 
 add_module(CHATBOT_MODULE)
 
-import chatbot_rnn.chatbot as chatbot
+import DeepQA.chatbot.chatbot as chatbot
+#import chatbot_rnn.chatbot as chatbot
 
 class ChatbotWrapper(object):
     """

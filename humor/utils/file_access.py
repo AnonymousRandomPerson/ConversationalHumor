@@ -1,4 +1,3 @@
-import argparse
 import os
 import sys
 from typing import TextIO
@@ -7,10 +6,6 @@ from typing import TextIO
 ROOT_FOLDER = 'humor'
 # The folder where data files are stored.
 DATA_FOLDER = 'data'
-# The folder where configuration files are stored.
-CONFIG_FOLDER = 'config'
-# The folder where log files are stored.
-LOG_FOLDER = 'logs'
 # The folder where saved TensorFlow models are stored.
 SAVED_MODEL_FOLDER = 'tfsave'
 # The folder where GloVe files are stored.
@@ -21,23 +16,11 @@ PICKLE_EXTENSION = '.pickle'
 # The extension for plain text files.
 TEXT_EXTENSION = '.txt'
 
-# The subword-nmt submodule name.
-CHATBOT_MODULE = 'chatbot_rnn'
-# The seq2seq submodule name.
-SEQ2SEQ_MODULE = 'seq2seq_sub'
-# The subword-nmt submodule name.
-SUBWORD_MODULE = 'subword_nmt'
-
-# The output file for seq2seq test output.
-TEST_OUTPUT_FILE = os.path.join(LOG_FOLDER, 'test_output' + TEXT_EXTENSION)
+# The DeepQA submodule name.
+CHATBOT_MODULE = 'DeepQA'
 
 # The file containing humor values for words.
 HUMOR_VALUES_FILE = os.path.join(DATA_FOLDER, 'humor_dataset.csv')
-
-# The prefix for all BPE files.
-BPE_PREFIX = 'bpe'
-# The prefix for all vocabulary files.
-VOCAB_PREFIX = 'vocab'
 
 # The file containing a pretrained GloVe model.
 GLOVE_FILE = os.path.join(GLOVE_FOLDER, 'glove.twitter.27B.25d.txt')
@@ -76,21 +59,3 @@ def add_module(module_name: str):
         module_name: The name of the submodule to be added to the path.
     """
     sys.path.append(module_name)
-
-def add_corpus_argument(parser: argparse.ArgumentParser):
-    """
-    Adds the corpus-file argument to an argument parser to get the name of the corpus to use.
-
-    Args:
-        parser: The argument parser to add to.
-    """
-    parser.add_argument('-c', '--corpus-file', required=True, help='The name of the corpus to get data from.')
-
-def add_output_suffix_argument(parser: argparse.ArgumentParser):
-    """
-    Adds the output-suffix argument to an argument parser to get the suffix for output files.
-
-    Args:
-        parser: The argument parser to add to.
-    """
-    parser.add_argument('-o', '--output-suffix', required=True, help="Suffix for the file with BPE codes.")

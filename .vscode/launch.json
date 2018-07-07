@@ -10,14 +10,19 @@
             "request": "launch",
             "program": "${workspaceFolder}/humor/qlearn.py",
             "cwd": "${workspaceFolder}/humor",
+            "module": "qlearn",
             "debugOptions": [
                 "RedirectOutput"
             ],
             "args": [
                 "-m",
                 "evaluated_rl",
-                "--save_dir",
-                "chatbot_rnn/models/reddit"
+                "--modelTag",
+                "cornell",
+                "--rootDir",
+                "DeepQA",
+                "--test",
+                "daemon"
             ]
         },
         {

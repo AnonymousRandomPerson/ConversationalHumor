@@ -22,29 +22,33 @@ def run() -> None:
     num_inputs = 25
     num_outputs = 1
 
-    #These lines establish the feed-forward part of the network used to choose actions
-    inputs1 = tf.placeholder(shape=[1, num_inputs], dtype=tf.float32)
-    weights = tf.Variable(tf.random_uniform([num_inputs, num_outputs], 0, max_init_value))
-    biases = tf.Variable(tf.random_uniform([num_outputs], 0, max_init_value))
-    q_out = tf.nn.relu(tf.add(tf.matmul(inputs1, weights), biases))
-    predict = tf.argmax(q_out, 1)
-
-    #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
-    next_q = tf.placeholder(shape=[1, num_outputs], dtype=tf.float32)
-    loss = tf.reduce_sum(tf.square(next_q - q_out))
-    trainer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
-    update_model = trainer.minimize(loss)
-
-    init = tf.initialize_all_variables()
-
-    # Set learning parameters
-    y = .99
-    e = 0.5
-    num_episodes = 500
-    num_test = 100
-    max_steps = 2
-
     with tf.Session() as sess:
+        env = EvaluatedConversation(sess)
+
+        responders = [env.chatbot]
+
+        #These lines establish the feed-forward part of the network used to choose actions
+        inputs1 = tf.placeholder(shape=[1, num_inputs], dtype=tf.float32)
+        weights = tf.Variable(tf.random_uniform([num_inputs, num_outputs], 0, max_init_value))
+        biases = tf.Variable(tf.random_uniform([num_outputs], 0, max_init_value))
+        q_out = tf.nn.relu(tf.add(tf.matmul(inputs1, weights), biases))
+        predict = tf.argmax(q_out, 1)
+
+        #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
+        next_q = tf.placeholder(shape=[1, num_outputs], dtype=tf.float32)
+        loss = tf.reduce_sum(tf.square(next_q - q_out))
+        trainer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
+        update_model = trainer.minimize(loss)
+
+        init = tf.initialize_all_variables()
+
+        # Set learning parameters
+        y = .99
+        e = 0.5
+        num_episodes = 500
+        num_test = 100
+        max_steps = 2
+
         sess.run(init)
 
         saver = tf.train.Saver([weights, biases], save_relative_paths=True)
@@ -69,12 +73,6 @@ def run() -> None:
             r_list = []
 
             for _ in range(num_episodes):
-                #Reset environment and get first new observation
-                env = EvaluatedConversation(sess)
-                normal_chatbot = chatbots.NormalChatbot(sess, 'Normal')
-                replace_chatbot = chatbots.ReplaceChatbot(sess, 'Replace')
-
-                responders = [replace_chatbot]
 
                 last_sentence = env.start_conversation()
                 s = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
