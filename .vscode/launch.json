@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "qlearn",
+            "name": "qlearn_train",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/humor/qlearn.py",
@@ -23,6 +23,28 @@
                 "DeepQA",
                 "--test",
                 "daemon"
+            ]
+        },
+        {
+            "name": "qlearn_test",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/humor/qlearn.py",
+            "cwd": "${workspaceFolder}/humor",
+            "module": "qlearn",
+            "debugOptions": [
+                "RedirectOutput"
+            ],
+            "args": [
+                "-m",
+                "evaluated_rl",
+                "--modelTag",
+                "cornell",
+                "--rootDir",
+                "DeepQA",
+                "--test",
+                "daemon",
+                "--rl-test"
             ]
         },
         {

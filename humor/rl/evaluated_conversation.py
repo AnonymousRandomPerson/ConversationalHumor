@@ -1,21 +1,25 @@
-import tensorflow as tf
-
-import rl.chatbots as chatbots
+from rl.chatbots import NormalChatbot
 from rl.conversation import Conversation
+from utils.file_access import add_module, CHATBOT_MODULE
+
+add_module(CHATBOT_MODULE)
+
+import DeepQA.chatbot.chatbot as chatbot
 
 class EvaluatedConversation(Conversation):
     """
     A conversation that is evaluated with a non-trivial function.
     """
 
-    def __init__(self, sess: tf.Session):
+    def __init__(self, chatbot_object: chatbot.Chatbot):
         """
         Sets up the chatbot to be used in the conversation.
 
         Args:
             sess: The Tensorflow session to use with the chatbot.
         """
-        self.chatbot = chatbots.NormalChatbot(sess, 'Other')
+        Conversation.__init__(self)
+        self.chatbot = NormalChatbot(chatbot_object, 'Other')
         self.conversation = []
 
     def start_conversation(self) -> str:

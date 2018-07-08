@@ -8,7 +8,11 @@ import tensorflow as tf
 from glove.glove_embeddings import GloveEmbedding
 import rl.chatbots as chatbots
 from rl.evaluated_conversation import EvaluatedConversation
-from utils.file_access import GLOVE_FILE, SAVED_MODEL_FOLDER
+from utils.file_access import  add_module, GLOVE_FILE, SAVED_MODEL_FOLDER, CHATBOT_MODULE
+
+add_module(CHATBOT_MODULE)
+
+import DeepQA.chatbot.chatbot as chatbot
 
 def run() -> None:
     """
@@ -20,12 +24,16 @@ def run() -> None:
 
     max_init_value = 0.01
     num_inputs = 25
-    num_outputs = 1
 
     with tf.Session() as sess:
-        env = EvaluatedConversation(sess)
+        chatbot_object = chatbot.get_chatbot(sess)
+        env = EvaluatedConversation(chatbot_object)
+        normal_chatbot = chatbots.NormalChatbot(chatbot_object, 'Normal')
+        prob_chatbot = chatbots.HumorProbChatbot(chatbot_object, 'HumorProb')
 
-        responders = [env.chatbot]
+        responders = [normal_chatbot, prob_chatbot]
+
+        num_outputs = len(responders)
 
         #These lines establish the feed-forward part of the network used to choose actions
         inputs1 = tf.placeholder(shape=[1, num_inputs], dtype=tf.float32)
@@ -73,7 +81,6 @@ def run() -> None:
             r_list = []
 
             for _ in range(num_episodes):
-
                 last_sentence = env.start_conversation()
                 s = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
                 s = np.array([s[0]])
@@ -99,7 +106,7 @@ def run() -> None:
 
                     if not is_test:
                         #Obtain the Q' values by feeding the new state through our network
-                        q1 = sess.run(q_out,feed_dict={inputs1:s1})
+                        q1 = sess.run(q_out, feed_dict={inputs1:s1})
                         #Obtain maxQ' and set our target value for chosen action.
                         max_q1 = np.max(q1)
                         target_q = all_q
@@ -112,7 +119,7 @@ def run() -> None:
                 r_list.append(r_all)
             return j_list, r_list
 
-        if not args.test:
+        if not args.rl_test:
             _, r_list = run_episodes(num_episodes, False)
             print("Average episode reward (training): " + str(sum(r_list)/num_episodes))
 
@@ -125,7 +132,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a reinforcement learner.')
 
     parser.add_argument('-m', '--model-file', required=True, help='The name of the model to load and save.')
-    parser.add_argument('-t', '--test', default=False, help='Test the current model.', action='store_true')
+    parser.add_argument('-t', '--rl-test', help='Test the current model.', action='store_true')
     args, _ = parser.parse_known_args()
 
     run()
