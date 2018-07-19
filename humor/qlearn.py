@@ -2,13 +2,14 @@
 
 import argparse
 import os
+from typing import List
+
 import numpy as np
 import tensorflow as tf
 
-from glove.glove_embeddings import GloveEmbedding
 import rl.chatbots as chatbots
 from rl.evaluated_conversation import EvaluatedConversation
-from utils.file_access import  add_module, GLOVE_FILE, SAVED_MODEL_FOLDER, CHATBOT_MODULE
+from utils.file_access import  add_module, SAVED_MODEL_FOLDER, CHATBOT_MODULE
 
 add_module(CHATBOT_MODULE)
 
@@ -20,10 +21,8 @@ def run() -> None:
     """
     save_model_path = os.path.join(SAVED_MODEL_FOLDER, args.model_file)
 
-    glove = GloveEmbedding(GLOVE_FILE)
-
     max_init_value = 0.01
-    num_inputs = 25
+    num_inputs = 64
 
     with tf.Session() as sess:
         chatbot_object = chatbot.get_chatbot(sess)
@@ -63,6 +62,18 @@ def run() -> None:
         if os.path.exists(save_model_path + '.index'):
             saver.restore(sess, save_model_path)
 
+        def get_word_embeddings(sentence: List[str]):
+            """
+            Gets a list of word embeddings for a sentence's words.
+
+            Args:
+                sentence: The sentence to get the embeddings for.
+
+            Returns:
+                The word embeddings for the sentence, with the unknown token embedding for unrecognized words.
+            """
+            return [normal_chatbot.chatbot.embeddings[env.get_word_index(word)] for word in sentence.split(' ')]
+
         def run_episodes(num_episodes: int, is_test: bool):
             """
             Runs a training or testing session.
@@ -82,7 +93,7 @@ def run() -> None:
 
             for _ in range(num_episodes):
                 last_sentence = env.start_conversation()
-                s = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
+                s = get_word_embeddings(last_sentence)
                 s = np.array([s[0]])
                 r_all = 0
                 j = 0
@@ -91,7 +102,7 @@ def run() -> None:
                 while j < max_steps and not end:
                     j += 1
                     #Choose an action greedily (with e chance of random action) from the Q-network
-                    a, all_q = sess.run([predict, q_out],feed_dict={inputs1:s})
+                    a, all_q = sess.run([predict, q_out], feed_dict={inputs1:s})
                     print("All q-values:", all_q)
                     a = a[0]
                     if not is_test and np.random.rand(1) < current_epsilon:
@@ -101,7 +112,7 @@ def run() -> None:
 
                     last_sentence, r, end = env.respond(response)
 
-                    s1 = [glove.word_embeddings[word] for word in last_sentence.split(' ')]
+                    s1 = get_word_embeddings(last_sentence)
                     s1 = np.array([s1[0]])
 
                     if not is_test:

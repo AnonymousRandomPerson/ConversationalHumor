@@ -1,3 +1,8 @@
+import string
+
+from nltk.corpus import stopwords
+from scipy import spatial
+
 from rl.chatbots import NormalChatbot
 from rl.conversation import Conversation
 from utils.file_access import add_module, CHATBOT_MODULE
@@ -21,6 +26,9 @@ class EvaluatedConversation(Conversation):
         Conversation.__init__(self)
         self.chatbot = NormalChatbot(chatbot_object, 'Other')
         self.conversation = []
+        self.conversation_set = set()
+        self.stopwords = stopwords.words('english')
+        self.ended = False
 
     def start_conversation(self) -> str:
         """
@@ -29,7 +37,9 @@ class EvaluatedConversation(Conversation):
         Returns:
             The first message in the conversation.
         """
-        return 'Hello.'
+        starter = 'Hello.'
+        self.add_response(starter)
+        return starter
 
     def choose_message(self, response: str) -> str:
         """
@@ -42,7 +52,7 @@ class EvaluatedConversation(Conversation):
             The next message in the conversation.
         """
         chatbot_response = self.chatbot.respond(response)
-        self.conversation.append(chatbot_response)
+        self.add_response(chatbot_response)
         return chatbot_response
 
     def evaluate_response(self, response: str) -> float:
@@ -54,10 +64,36 @@ class EvaluatedConversation(Conversation):
 
         Returns: The reward for the response.
         """
-        self.conversation.append(response)
-        if response == 'Test':
-            return 0
-        return 10
+        if response in self.conversation_set:
+            self.ended = True
+        self.add_response(response)
+
+        last_response = ''
+        if len(self.conversation) > 2:
+            last_response = self.conversation[-3]
+        current_message = self.conversation[-2]
+
+        last_response_keywords = [word for word in last_response.split(' ') if word not in self.stopwords]
+        response_keywords = [word for word in response.split(' ') if word not in self.stopwords]
+        num_last_keywords = len(last_response_keywords)
+        num_current_keywords = len(response_keywords)
+
+        embeddings = self.chatbot.chatbot.embeddings
+
+        average_similarity = 0
+
+        for current_word in response_keywords:
+            max_similarity = 0
+            current_index = self.get_word_index(current_word)
+            for last_word in last_response_keywords:
+                last_index = self.get_word_index(last_word)
+                cos_similarity = 1 - spatial.distance.cosine(embeddings[current_index], embeddings[last_index])
+                max_similarity = max(max_similarity, cos_similarity)
+            average_similarity += max_similarity
+
+        average_similarity /= num_current_keywords
+
+        return 0
 
     def is_ended(self) -> bool:
         """
@@ -72,3 +108,30 @@ class EvaluatedConversation(Conversation):
         Does pre-processing before a response is evaluated.
         """
         pass
+
+    def add_response(self, response: str):
+        """
+        Adds a response to the conversation history.
+        """
+        self.conversation.append(response)
+        self.conversation_set.add(response)
+
+    def get_word_index(self, word):
+        """
+        Gets the index of a word in the chatbot vocabulary.
+
+        Args:
+            word: The word to get an index for.
+
+        Returns: The index of the word in the chatbot vocabulary.
+        """
+        word2id = self.chatbot.chatbot.textData.word2id
+
+        if word and word[-1] in string.punctuation:
+            word = word[:-1]
+
+        word = word.lower()
+        if word in word2id:
+            return word2id[word]
+
+        return self.chatbot.chatbot.textData.unknownToken

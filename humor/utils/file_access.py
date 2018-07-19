@@ -8,8 +8,6 @@ ROOT_FOLDER = 'humor'
 DATA_FOLDER = 'data'
 # The folder where saved TensorFlow models are stored.
 SAVED_MODEL_FOLDER = 'tfsave'
-# The folder where GloVe files are stored.
-GLOVE_FOLDER = 'glove'
 
 # The extension for pickled files.
 PICKLE_EXTENSION = '.pickle'
@@ -21,9 +19,6 @@ CHATBOT_MODULE = 'DeepQA'
 
 # The file containing humor values for words.
 HUMOR_VALUES_FILE = os.path.join(DATA_FOLDER, 'humor_dataset.csv')
-
-# The file containing a pretrained GloVe model.
-GLOVE_FILE = os.path.join(GLOVE_FOLDER, 'glove.twitter.27B.25d.txt')
 
 def open_data_file(file_name: str, mode: str = 'r') -> TextIO:
     """
