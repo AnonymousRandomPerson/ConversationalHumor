@@ -3,7 +3,7 @@ import string
 from nltk.corpus import stopwords
 from scipy import spatial
 
-from rl.chatbots import NormalChatbot
+from rl.chatbots import ChatbotWrapper, NormalChatbot
 from rl.conversation import Conversation
 from utils.file_access import add_module, CHATBOT_MODULE
 
@@ -37,8 +37,10 @@ class EvaluatedConversation(Conversation):
         Returns:
             The first message in the conversation.
         """
-        starter = 'Hello.'
+        starter = self.chatbot.chatbot.getRandomStarter()
         self.add_response(starter)
+        ChatbotWrapper.respond(self.chatbot, '')
+        print(starter)
         return starter
 
     def choose_message(self, response: str) -> str:
@@ -93,7 +95,9 @@ class EvaluatedConversation(Conversation):
 
         average_similarity /= num_current_keywords
 
-        return 0
+        dissimilarity_score = 0.5 - average_similarity
+
+        return dissimilarity_score
 
     def is_ended(self) -> bool:
         """
