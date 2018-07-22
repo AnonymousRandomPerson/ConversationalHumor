@@ -54,7 +54,7 @@ def run() -> None:
         e = 0.5
         num_episodes = 500
         num_test = 100
-        max_steps = 2
+        max_steps = 20
 
         sess.run(init)
 
@@ -92,6 +92,7 @@ def run() -> None:
             r_list = []
 
             for _ in range(num_episodes):
+                print("\nStarting conversation.")
                 last_sentence = env.start_conversation()
                 s = get_word_embeddings(last_sentence)
                 s = np.array([s[0]])

@@ -1,6 +1,10 @@
 import collections
 import csv
+import string
 from typing import Dict, List, Tuple
+
+import nltk.tokenize
+
 from utils.file_access import CORNELL_BASE_FOLDER, file_exists, HUMOR_VALUES_FILE, MOVIE_CONVERSATIONS_FILE, MOVIE_LINES_FILE, open_data_file, STARTER_LINES_FILE
 
 def build_word_indices(words: List[str]) -> Tuple[Dict[str, int], Dict[int, str]]:
@@ -60,11 +64,22 @@ def get_starter_lines() -> List[str]:
             line_dict = {line[:line.index(' ')]: line[line.rfind('+++$+++') + 8:-1] for line in lines}
 
         starter_lines = []
-        with open_data_file(STARTER_LINES_FILE, 'w+', CORNELL_BASE_FOLDER) as starter_file:
+        max_length = 10
+        with open_data_file(STARTER_LINES_FILE, 'w+') as starter_file:
             with open_data_file(MOVIE_CONVERSATIONS_FILE, prefix=CORNELL_BASE_FOLDER) as conversations:
                 for conversation in conversations:
                     starter_line_index = conversation[conversation.index('[') + 2 : conversation.index(',') - 1]
                     starter_line = line_dict[starter_line_index]
+                    tokens = nltk.tokenize.word_tokenize(starter_line)
+                    if len(tokens) > max_length:
+                        found_end = False
+                        for token in tokens[:max_length]:
+                            if token in string.punctuation:
+                                starter_line = starter_line[:starter_line.index(token)]
+                                found_end = True
+                                break
+                        if not found_end:
+                            continue
                     starter_file.write(starter_line + '\n')
                     starter_lines.append(starter_line)
 
