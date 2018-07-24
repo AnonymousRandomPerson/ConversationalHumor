@@ -38,7 +38,7 @@ def run() -> None:
         inputs1 = tf.placeholder(shape=[1, num_inputs], dtype=tf.float32)
         weights = tf.Variable(tf.random_uniform([num_inputs, num_outputs], 0, max_init_value))
         biases = tf.Variable(tf.random_uniform([num_outputs], 0, max_init_value))
-        q_out = tf.nn.relu(tf.add(tf.matmul(inputs1, weights), biases))
+        q_out = tf.nn.sigmoid(tf.add(tf.matmul(inputs1, weights), biases))
         predict = tf.argmax(q_out, 1)
 
         #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
@@ -131,19 +131,21 @@ def run() -> None:
                 r_list.append(r_all)
             return j_list, r_list
 
-        if not args.rl_test:
-            _, r_list = run_episodes(num_episodes, False)
-            print("Average episode reward (training): " + str(sum(r_list)/num_episodes))
+        try:
+            if not args.rl_test:
+                _, r_list = run_episodes(num_episodes, False)
+                print("Average episode reward (training): " + str(sum(r_list)/num_episodes))
 
-            saver.save(sess, save_model_path)
-
-        _, r_list = run_episodes(num_test, True)
-        print("Average episode reward (testing): " + str(sum(r_list)/num_test))
+            _, r_list = run_episodes(num_test, True)
+            print("Average episode reward (testing): " + str(sum(r_list)/num_test))
+        except KeyboardInterrupt:
+            if not args.rl_test:
+                saver.save(sess, save_model_path)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a reinforcement learner.')
 
-    parser.add_argument('-m', '--model-file', required=True, help='The name of the model to load and save.')
+    parser.add_argument('-f', '--model-file', required=True, help='The name of the model to load and save.')
     parser.add_argument('-t', '--rl-test', help='Test the current model.', action='store_true')
     args, _ = parser.parse_known_args()
 

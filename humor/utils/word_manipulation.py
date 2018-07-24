@@ -1,6 +1,5 @@
 import collections
 import csv
-import string
 from typing import Dict, List, Tuple
 
 import nltk.tokenize
@@ -65,6 +64,7 @@ def get_starter_lines() -> List[str]:
 
         starter_lines = []
         max_length = 10
+        sentence_ends = ['.', '?', '!']
         with open_data_file(STARTER_LINES_FILE, 'w+') as starter_file:
             with open_data_file(MOVIE_CONVERSATIONS_FILE, prefix=CORNELL_BASE_FOLDER) as conversations:
                 for conversation in conversations:
@@ -73,14 +73,30 @@ def get_starter_lines() -> List[str]:
                     tokens = nltk.tokenize.word_tokenize(starter_line)
                     if len(tokens) > max_length:
                         found_end = False
+                        found_word = False
                         for token in tokens[:max_length]:
-                            if token in string.punctuation:
-                                starter_line = starter_line[:starter_line.index(token)]
+                            if not found_word and token[0] not in sentence_ends:
+                                # Skip punctuation at the start of the sentence.
+                                found_word = True
+                            if not found_word:
+                                continue
+
+                            if len(token) == 1 and token in sentence_ends:
+                                token_index = starter_line.index(token)
+                                offset_search = 0
+                                while starter_line[offset_search] in sentence_ends:
+                                    offset_search += 1
+
+                                if token_index == 0:
+                                    # Ignore starting punctuation.
+                                    token_index = starter_line[offset_search:].index(token) + offset_search
+                                starter_line = starter_line[:token_index + 1]
                                 found_end = True
                                 break
                         if not found_end:
                             continue
-                    starter_file.write(starter_line + '\n')
-                    starter_lines.append(starter_line)
+                    if starter_line:
+                        starter_file.write(starter_line + '\n')
+                        starter_lines.append(starter_line)
 
     return starter_lines

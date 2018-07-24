@@ -97,7 +97,10 @@ class EvaluatedConversation(Conversation):
 
         dissimilarity_score = 0.5 - average_similarity
 
-        return dissimilarity_score
+        final_score = dissimilarity_score
+        print('Score:', final_score)
+
+        return final_score
 
     def is_ended(self) -> bool:
         """

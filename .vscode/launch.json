@@ -15,7 +15,7 @@
                 "RedirectOutput"
             ],
             "args": [
-                "-m",
+                "-f",
                 "evaluated_rl",
                 "--modelTag",
                 "cornell",
@@ -36,7 +36,7 @@
                 "RedirectOutput"
             ],
             "args": [
-                "-m",
+                "-f",
                 "evaluated_rl",
                 "--modelTag",
                 "cornell",
