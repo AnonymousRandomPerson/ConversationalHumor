@@ -68,7 +68,6 @@ def run() -> None:
 
             Args:
                 sentence: The sentence to get the embeddings for.
-
             Returns:
                 The word embeddings for the sentence, with the unknown token embedding for unrecognized words.
             """

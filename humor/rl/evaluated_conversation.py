@@ -1,6 +1,7 @@
 import string
 
 from nltk.corpus import stopwords
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from scipy import spatial
 
 from rl.chatbots import ChatbotWrapper, NormalChatbot
@@ -29,6 +30,7 @@ class EvaluatedConversation(Conversation):
         self.conversation_set = set()
         self.stopwords = stopwords.words('english')
         self.ended = False
+        self.sentiment_analyzer = SentimentIntensityAnalyzer()
 
     def start_conversation(self) -> str:
         """
@@ -97,9 +99,10 @@ class EvaluatedConversation(Conversation):
 
         dissimilarity_score = 0.5 - average_similarity
 
-        final_score = dissimilarity_score
-        print('Score:', final_score)
+        sentiment_score = self.sentiment_analyzer.polarity_scores(response)['compound']
 
+        final_score = (dissimilarity_score + sentiment_score) / 2
+        print('Score:', final_score, ', Dissimilarity:', dissimilarity_score, ', Sentiment:', sentiment_score)
         return final_score
 
     def is_ended(self) -> bool:
