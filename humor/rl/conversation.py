@@ -30,12 +30,13 @@ class Conversation(object):
         """
         return ''
 
-    def evaluate_response(self, response: str) -> float:
+    def evaluate_response(self, response: str, next_message: str) -> float:
         """
         Returns a reward for a certain response.
 
         Args:
             response: The response to the conversation.
+            next_message: The next message that will be said in response to the first response.
 
         Returns: The reward for the response.
         """
@@ -68,12 +69,12 @@ class Conversation(object):
             end: Whether the conversation is over.
         """
         self.on_response()
-        reward = self.evaluate_response(response)
         is_ended = self.is_ended()
         if is_ended:
             next_message = ''
         else:
             next_message = self.choose_message(response)
+        reward = self.evaluate_response(response, next_message)
         return next_message, reward, is_ended
 
 

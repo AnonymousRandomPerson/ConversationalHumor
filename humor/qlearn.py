@@ -21,8 +21,12 @@ def run() -> None:
     """
     save_model_path = os.path.join(SAVED_MODEL_FOLDER, args.model_file)
 
+    embedding_size = 64
+    max_sentence_length = 10
+
     max_init_value = 0.01
-    num_inputs = 64
+    num_inputs = embedding_size * max_sentence_length
+    hidden_size = 320
 
     with tf.Session() as sess:
         chatbot_object = chatbot.get_chatbot(sess)
@@ -35,34 +39,40 @@ def run() -> None:
         num_outputs = len(responders)
 
         #These lines establish the feed-forward part of the network used to choose actions
-        inputs1 = tf.placeholder(shape=[1, num_inputs], dtype=tf.float32)
-        weights = tf.Variable(tf.random_uniform([num_inputs, num_outputs], 0, max_init_value))
-        biases = tf.Variable(tf.random_uniform([num_outputs], 0, max_init_value))
-        q_out = tf.nn.sigmoid(tf.add(tf.matmul(inputs1, weights), biases))
+        inputs1 = tf.placeholder(shape=[1, num_inputs], dtype=tf.float32, name='inputs1')
+        input_weights = tf.Variable(tf.random_uniform([num_inputs, hidden_size], 0, max_init_value), name='input_weights')
+        input_biases = tf.Variable(tf.random_uniform([hidden_size], 0, max_init_value), name='input_biases')
+
+        hidden_weights = tf.Variable(tf.random_uniform([hidden_size, num_outputs], 0, max_init_value), name='hidden_weights')
+        hidden_biases = tf.Variable(tf.random_uniform([num_outputs], 0, max_init_value), name='hidden_biases')
+        hidden_out = tf.nn.sigmoid(tf.add(tf.matmul(inputs1, input_weights), input_biases), name='hidden_out')
+
+        q_out = tf.nn.sigmoid(tf.add(tf.matmul(hidden_out, hidden_weights), hidden_biases),name='q_out')
         predict = tf.argmax(q_out, 1)
 
         #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
-        next_q = tf.placeholder(shape=[1, num_outputs], dtype=tf.float32)
+        next_q = tf.placeholder(shape=[1, num_outputs], dtype=tf.float32, name='next_q')
         loss = tf.reduce_sum(tf.square(next_q - q_out))
         trainer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
         update_model = trainer.minimize(loss)
 
-        init = tf.variables_initializer([weights, biases])
+        init = tf.variables_initializer([input_weights, input_biases, hidden_weights, hidden_biases])
 
         # Set learning parameters
         y = .99
         e = 0.5
-        num_episodes = 500
+        num_episodes = 50000
         num_test = 100
         max_steps = 20
 
         sess.run(init)
 
-        saver = tf.train.Saver([weights, biases], save_relative_paths=True)
+        saver = tf.train.Saver([input_weights, input_biases, hidden_weights, hidden_biases], save_relative_paths=True)
         if os.path.exists(save_model_path + '.index'):
             saver.restore(sess, save_model_path)
+            print("Model restored.")
 
-        def get_word_embeddings(sentence: List[str]):
+        def get_word_embeddings(sentence: List[str]) -> List[float]:
             """
             Gets a list of word embeddings for a sentence's words.
 
@@ -72,6 +82,23 @@ def run() -> None:
                 The word embeddings for the sentence, with the unknown token embedding for unrecognized words.
             """
             return [normal_chatbot.chatbot.embeddings[env.get_word_index(word)] for word in sentence.split(' ')]
+
+        def get_embedding_array(sentence: List[str]) -> np.ndarray:
+            """
+            Gets a 1D array representing word embeddings in a sentence.
+
+            Args:
+                sentence: The sentence to get the embeddings for.
+            Returns:
+                A 1D array representing word embeddings in a sentence.
+            """
+            s = get_word_embeddings(sentence)
+            while len(s) < max_sentence_length:
+                s.append(np.zeros(s[0].shape))
+            if len(s) > max_sentence_length:
+                s = s[:max_sentence_length]
+            s = np.array([np.array(s).flatten()])
+            return s
 
         def run_episodes(num_episodes: int, is_test: bool):
             """
@@ -93,8 +120,7 @@ def run() -> None:
             for _ in range(num_episodes):
                 print("\nStarting conversation.")
                 last_sentence = env.start_conversation()
-                s = get_word_embeddings(last_sentence)
-                s = np.array([s[0]])
+                s = get_embedding_array(last_sentence)
                 r_all = 0
                 j = 0
                 end = False
@@ -112,7 +138,7 @@ def run() -> None:
 
                     last_sentence, r, end = env.respond(response)
 
-                    s1 = get_word_embeddings(last_sentence)
+                    s1 = get_embedding_array(last_sentence)
                     s1 = np.array([s1[0]])
 
                     if not is_test:
@@ -123,7 +149,7 @@ def run() -> None:
                         target_q = all_q
                         target_q[0, a] = r + y * max_q1
                         #Train our network using target and predicted Q values
-                        _, _ = sess.run([update_model, weights],feed_dict={inputs1:s, next_q:target_q})
+                        _, _ = sess.run([update_model, input_weights], feed_dict={inputs1:s, next_q:target_q})
                     r_all += r
                     s = s1
                 j_list.append(j)
@@ -140,6 +166,7 @@ def run() -> None:
         except KeyboardInterrupt:
             if not args.rl_test:
                 saver.save(sess, save_model_path)
+                print("Model saved.")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a reinforcement learner.')

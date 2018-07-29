@@ -39,6 +39,9 @@ class EvaluatedConversation(Conversation):
         Returns:
             The first message in the conversation.
         """
+        self.conversation = []
+        self.conversation_set = set()
+
         starter = self.chatbot.chatbot.getRandomStarter()
         self.add_response(starter)
         ChatbotWrapper.respond(self.chatbot, '')
@@ -55,54 +58,75 @@ class EvaluatedConversation(Conversation):
         Returns:
             The next message in the conversation.
         """
+        self.add_response(response)
         chatbot_response = self.chatbot.respond(response)
         self.add_response(chatbot_response)
         return chatbot_response
 
-    def evaluate_response(self, response: str) -> float:
+    def evaluate_response(self, response: str, next_message: str) -> float:
         """
         Returns a reward for a certain response.
 
         Args:
             response: The response to the conversation.
+            next_message: The next message that will be said in response to the first response.
 
         Returns: The reward for the response.
         """
         if response in self.conversation_set:
             self.ended = True
-        self.add_response(response)
 
         last_response = ''
-        if len(self.conversation) > 2:
-            last_response = self.conversation[-3]
-        current_message = self.conversation[-2]
+        if len(self.conversation) > 3:
+            last_response = self.conversation[-4]
+        current_message = self.conversation[-3]
 
         last_response_keywords = [word for word in last_response.split(' ') if word not in self.stopwords]
         response_keywords = [word for word in response.split(' ') if word not in self.stopwords]
-        num_last_keywords = len(last_response_keywords)
         num_current_keywords = len(response_keywords)
 
         embeddings = self.chatbot.chatbot.embeddings
 
-        average_similarity = 0
+        if last_response:
+            # Reward for using a different response than the previous response.
+            average_similarity = 0
 
-        for current_word in response_keywords:
-            max_similarity = 0
-            current_index = self.get_word_index(current_word)
-            for last_word in last_response_keywords:
-                last_index = self.get_word_index(last_word)
-                cos_similarity = 1 - spatial.distance.cosine(embeddings[current_index], embeddings[last_index])
-                max_similarity = max(max_similarity, cos_similarity)
-            average_similarity += max_similarity
+            for current_word in response_keywords:
+                max_similarity = 0
+                current_index = self.get_word_index(current_word)
+                for last_word in last_response_keywords:
+                    last_index = self.get_word_index(last_word)
+                    cos_similarity = 1 - spatial.distance.cosine(embeddings[current_index], embeddings[last_index])
+                    max_similarity = max(max_similarity, cos_similarity)
+                average_similarity += max_similarity
 
-        average_similarity /= num_current_keywords
+            average_similarity /= num_current_keywords
 
-        dissimilarity_score = 0.5 - average_similarity
+            dissimilarity_score = -average_similarity
+        else:
+            dissimilarity_score = 0.0
 
-        sentiment_score = self.sentiment_analyzer.polarity_scores(response)['compound']
+        # Reward for using humor when the other side is in a good mood.
+        current_sentiment = self.get_sentiment(current_message)
+        if response.endswith('!'):
+            current_sentiment_score = current_sentiment
+        else:
+            current_sentiment_score = 0.0
 
-        final_score = (dissimilarity_score + sentiment_score) / 2
-        print('Score:', final_score, ', Dissimilarity:', dissimilarity_score, ', Sentiment:', sentiment_score)
+        # Reward for positively changing the other side's sentiment
+        next_sentiment = self.get_sentiment(next_message)
+
+        sentiment_change_score = 0.0
+        sentiment_difference = next_sentiment - current_sentiment
+
+        if sentiment_difference < 0.0 and next_sentiment >= 0.0:
+            # Avoid negative reward for fluctuating between positive and neutral sentiment.
+            sentiment_difference = 0.0
+
+        sentiment_change_score = sentiment_difference
+
+        final_score = (dissimilarity_score + current_sentiment_score + sentiment_change_score) / 3
+        print('Score:', str(final_score) + ', Dissimilarity:', str(dissimilarity_score) + ', Current sentiment:', str(current_sentiment_score) + ', Sentiment change:', sentiment_change_score)
         return final_score
 
     def is_ended(self) -> bool:
@@ -126,7 +150,7 @@ class EvaluatedConversation(Conversation):
         self.conversation.append(response)
         self.conversation_set.add(response)
 
-    def get_word_index(self, word):
+    def get_word_index(self, word: str) -> int:
         """
         Gets the index of a word in the chatbot vocabulary.
 
@@ -145,3 +169,14 @@ class EvaluatedConversation(Conversation):
             return word2id[word]
 
         return self.chatbot.chatbot.textData.unknownToken
+
+    def get_sentiment(self, sentence: str) -> float:
+        """
+        Gets the compound sentiment value of a sentence.
+
+        Args:
+            sentence: The sentence to get a sentiment value for.
+
+        Returns: The compound sentiment value of a sentence.
+        """
+        return self.sentiment_analyzer.polarity_scores(sentence)['compound']
