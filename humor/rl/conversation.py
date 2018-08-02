@@ -9,26 +9,30 @@ class Conversation(object):
     def __init__(self):
         pass
 
-    def start_conversation(self) -> str:
+    def start_conversation(self, starter: str) -> str:
         """
         Resets the conversation.
+
+        Args:
+            starter: An optional pre-defined conversation starter.
 
         Returns:
             The first message in the conversation.
         """
         return self.choose_message('')
 
-    def choose_message(self, response: str) -> str:
+    def choose_message(self, response: str, next_message: str = '') -> str:
         """
         Chooses a message to send in the conversation.
 
         Args:
             response: The response to the conversation.
+            next_message: A predefined next message in the conversation, if not blank.
 
         Returns:
             The next message in the conversation.
         """
-        return ''
+        return next_message
 
     def evaluate_response(self, response: str, next_message: str) -> float:
         """
@@ -56,12 +60,13 @@ class Conversation(object):
         """
         pass
 
-    def respond(self, response: str) -> Tuple[str, float, bool]:
+    def respond(self, response: str, next_message: str = '') -> Tuple[str, float, bool]:
         """
         Takes a response to the previous dialogue and gives a reward and the next conversation message.
 
         Args:
             response: The response to the conversation.
+            next_message: A predefined next message in the conversation, if not blank.
 
         Returns:
             next_message: The next message in the conversation.
@@ -70,10 +75,8 @@ class Conversation(object):
         """
         self.on_response()
         is_ended = self.is_ended()
-        if is_ended:
-            next_message = ''
-        else:
-            next_message = self.choose_message(response)
+        if not is_ended:
+            next_message = self.choose_message(response, next_message)
         reward = self.evaluate_response(response, next_message)
         return next_message, reward, is_ended
 

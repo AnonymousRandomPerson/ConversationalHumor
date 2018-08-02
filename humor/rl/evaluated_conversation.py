@@ -26,42 +26,53 @@ class EvaluatedConversation(Conversation):
         """
         Conversation.__init__(self)
         self.chatbot = NormalChatbot(chatbot_object, 'Other')
+        self.chatbot.show_other = False
         self.conversation = []
         self.conversation_set = set()
         self.stopwords = stopwords.words('english')
         self.ended = False
         self.sentiment_analyzer = SentimentIntensityAnalyzer()
 
-    def start_conversation(self) -> str:
+    def start_conversation(self, starter: str = '') -> str:
         """
         Resets the conversation.
+
+        Args:
+            starter: An optional pre-defined conversation starter.
 
         Returns:
             The first message in the conversation.
         """
         self.conversation = []
         self.conversation_set = set()
+        self.ended = False
 
-        starter = self.chatbot.chatbot.getRandomStarter()
+        if not starter:
+            starter = self.chatbot.chatbot.getRandomStarter()
+            ChatbotWrapper.respond(self.chatbot, '')
+            print(starter)
         self.add_response(starter)
-        ChatbotWrapper.respond(self.chatbot, '')
-        print(starter)
         return starter
 
-    def choose_message(self, response: str) -> str:
+    def choose_message(self, response: str, next_message: str = '') -> str:
         """
         Chooses a message to send in the conversation.
 
         Args:
             response: The response to the conversation.
+            next_message: A predefined next message in the conversation, if not blank.
 
         Returns:
             The next message in the conversation.
         """
+        if response in self.conversation_set:
+            self.ended = True
+
         self.add_response(response)
-        chatbot_response = self.chatbot.respond(response)
-        self.add_response(chatbot_response)
-        return chatbot_response
+        if not next_message:
+            next_message = self.chatbot.respond(response)
+        self.add_response(next_message)
+        return next_message
 
     def evaluate_response(self, response: str, next_message: str) -> float:
         """
@@ -73,13 +84,9 @@ class EvaluatedConversation(Conversation):
 
         Returns: The reward for the response.
         """
-        if response in self.conversation_set:
-            self.ended = True
-
         last_response = ''
         if len(self.conversation) > 3:
-            last_response = self.conversation[-4]
-        current_message = self.conversation[-3]
+            last_response = self.conversation[-3]
 
         last_response_keywords = [word for word in last_response.split(' ') if word not in self.stopwords]
         response_keywords = [word for word in response.split(' ') if word not in self.stopwords]
@@ -102,12 +109,12 @@ class EvaluatedConversation(Conversation):
 
             average_similarity /= num_current_keywords
 
-            dissimilarity_score = -average_similarity
+            dissimilarity_score = min(0.0, 0.5 -average_similarity)
         else:
             dissimilarity_score = 0.0
 
         # Reward for using humor when the other side is in a good mood.
-        current_sentiment = self.get_sentiment(current_message)
+        current_sentiment = self.get_sentiment(response)
         if response.endswith('!'):
             current_sentiment_score = current_sentiment
         else:
@@ -126,7 +133,8 @@ class EvaluatedConversation(Conversation):
         sentiment_change_score = sentiment_difference
 
         final_score = (dissimilarity_score + current_sentiment_score + sentiment_change_score) / 3
-        print('Score:', str(final_score) + ', Dissimilarity:', str(dissimilarity_score) + ', Current sentiment:', str(current_sentiment_score) + ', Sentiment change:', sentiment_change_score)
+        if self.chatbot.chatbot.outer_args.debug_print:
+            print('Score:', str(final_score) + ', Dissimilarity:', str(dissimilarity_score) + ', Current sentiment:', str(current_sentiment_score) + ', Sentiment change:', sentiment_change_score)
         return final_score
 
     def is_ended(self) -> bool:
@@ -135,7 +143,7 @@ class EvaluatedConversation(Conversation):
 
         Returns: Whether the conversation has ended.
         """
-        return False
+        return self.ended
 
     def on_response(self):
         """

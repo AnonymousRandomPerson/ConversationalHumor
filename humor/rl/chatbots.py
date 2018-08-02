@@ -20,6 +20,7 @@ class ChatbotWrapper(object):
             name: The display name of the chatbot when printing responses.
         """
         self.name = name
+        self.show_other = True
 
     def respond(self, user_input: str, print_response: bool=True):
         """
@@ -49,7 +50,7 @@ class TestChatbot(ChatbotWrapper):
         ChatbotWrapper.__init__(self, 'Test')
         self.response = 'Test'
 
-    def respond(self, user_input: str, print_response: bool=True):
+    def respond(self, user_input: str, print_response: bool = True):
         """
         Responds to a message from the user.
 
@@ -93,7 +94,7 @@ class NormalChatbot(ChatbotWrapper):
             The chatbot's response to the user message.
         """
         ChatbotWrapper.respond(self, user_input, print_response)
-        return self.chatbot.respond(user_input, print_response)
+        return self.chatbot.respond(user_input, print_response, self.show_other)
 
 class HumorProbChatbot(ChatbotWrapper):
     """
@@ -125,7 +126,7 @@ class HumorProbChatbot(ChatbotWrapper):
         ChatbotWrapper.respond(self, user_input, print_response)
 
         self.chatbot.humorProb = True
-        response = self.chatbot.respond(user_input, print_response)
+        response = self.chatbot.respond(user_input, print_response, self.show_other)
         self.chatbot.humorProb = False
 
         return response

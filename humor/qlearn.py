@@ -19,6 +19,7 @@ def run() -> None:
     """
     Runs the q-learner.
     """
+
     save_model_path = os.path.join(SAVED_MODEL_FOLDER, args.model_file)
 
     embedding_size = 64
@@ -29,12 +30,17 @@ def run() -> None:
     hidden_size = 320
 
     with tf.Session() as sess:
-        chatbot_object = chatbot.get_chatbot(sess)
+        chatbot_object = chatbot.get_chatbot(sess, args)
         env = EvaluatedConversation(chatbot_object)
         normal_chatbot = chatbots.NormalChatbot(chatbot_object, 'Normal')
         prob_chatbot = chatbots.HumorProbChatbot(chatbot_object, 'HumorProb')
 
         responders = [normal_chatbot, prob_chatbot]
+
+        for responder in responders:
+            responder.show_other = args.show_other
+            if not args.debug_print:
+                responder.name = 'Chatbot'
 
         num_outputs = len(responders)
 
@@ -62,7 +68,7 @@ def run() -> None:
         y = .99
         e = 0.5
         num_episodes = 50000
-        num_test = 100
+        num_test = num_episodes
         max_steps = 20
 
         sess.run(init)
@@ -70,7 +76,9 @@ def run() -> None:
         saver = tf.train.Saver([input_weights, input_biases, hidden_weights, hidden_biases], save_relative_paths=True)
         if os.path.exists(save_model_path + '.index'):
             saver.restore(sess, save_model_path)
-            print("Model restored.")
+            print('Model restored.')
+        else:
+            print('Creating new model.')
 
         def get_word_embeddings(sentence: List[str]) -> List[float]:
             """
@@ -93,8 +101,10 @@ def run() -> None:
                 A 1D array representing word embeddings in a sentence.
             """
             s = get_word_embeddings(sentence)
+            init_num_embeddings = len(s)
             while len(s) < max_sentence_length:
-                s.append(np.zeros(s[0].shape))
+                # Pad the array by rolling over to the start of the sentence and moving forward.
+                s.append(s[len(s) % init_num_embeddings])
             if len(s) > max_sentence_length:
                 s = s[:max_sentence_length]
             s = np.array([np.array(s).flatten()])
@@ -118,8 +128,9 @@ def run() -> None:
             r_list = []
 
             for _ in range(num_episodes):
-                print("\nStarting conversation.")
-                last_sentence = env.start_conversation()
+                print('\nStarting conversation.')
+
+                last_sentence = env.start_conversation(get_human_input())
                 s = get_embedding_array(last_sentence)
                 r_all = 0
                 j = 0
@@ -129,14 +140,15 @@ def run() -> None:
                     j += 1
                     #Choose an action greedily (with e chance of random action) from the Q-network
                     a, all_q = sess.run([predict, q_out], feed_dict={inputs1:s})
-                    print("All q-values:", all_q)
+                    if args.debug_print:
+                        print('All q-values:', all_q)
                     a = a[0]
                     if not is_test and np.random.rand(1) < current_epsilon:
                         a = np.random.randint(0, num_outputs)
                     #Get new state and reward from environment
                     response = responders[a].respond(last_sentence)
 
-                    last_sentence, r, end = env.respond(response)
+                    last_sentence, r, end = env.respond(response, get_human_input())
 
                     s1 = get_embedding_array(last_sentence)
                     s1 = np.array([s1[0]])
@@ -159,20 +171,37 @@ def run() -> None:
         try:
             if not args.rl_test:
                 _, r_list = run_episodes(num_episodes, False)
-                print("Average episode reward (training): " + str(sum(r_list)/num_episodes))
+                print('Average episode reward (training): ' + str(sum(r_list)/num_episodes))
 
             _, r_list = run_episodes(num_test, True)
-            print("Average episode reward (testing): " + str(sum(r_list)/num_test))
+            print('Average episode reward (testing): ' + str(sum(r_list)/num_test))
         except KeyboardInterrupt:
             if not args.rl_test:
                 saver.save(sess, save_model_path)
-                print("Model saved.")
+                print('Model saved.')
+
+def get_human_input() -> str:
+    """
+    Gets a human user's response for the conversation.
+
+    Returns:
+        The human user's response for the conversation, if human input is enabled.
+    """
+    human_input = ''
+    if args.interactive:
+        while not human_input:
+            human_input = input('Enter a message: ')
+    return human_input
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Train a reinforcement learner.')
 
     parser.add_argument('-f', '--model-file', required=True, help='The name of the model to load and save.')
     parser.add_argument('-t', '--rl-test', help='Test the current model.', action='store_true')
+    parser.add_argument('-d', '--debug-print', help="Display more detail about the chatbot's decisions.", action='store_true')
+    parser.add_argument('-i', '--interactive', help='Directly talk to the chatbot instead of watching it talk to another chatbot.', action='store_true')
+    parser.add_argument('-o', '--show-other', help="Whether to show the unchosen chatbot's would-be response.", action='store_true')
+    parser.add_argument('-s', '--reduce-swear', help="Whether to reduce the amount of swearing used by the humor chatbot.", action='store_true')
     args, _ = parser.parse_known_args()
 
     run()
