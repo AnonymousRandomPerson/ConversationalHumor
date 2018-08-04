@@ -86,7 +86,8 @@ class EvaluatedConversation(Conversation):
         """
         last_response = ''
         if len(self.conversation) > 3:
-            last_response = self.conversation[-3]
+            last_response = self.conversation[-4]
+        current_message = self.conversation[-3]
 
         last_response_keywords = [word for word in last_response.split(' ') if word not in self.stopwords]
         response_keywords = [word for word in response.split(' ') if word not in self.stopwords]
@@ -114,17 +115,16 @@ class EvaluatedConversation(Conversation):
             dissimilarity_score = 0.0
 
         # Reward for using humor when the other side is in a good mood.
-        current_sentiment = self.get_sentiment(response)
-        if response.endswith('!'):
-            current_sentiment_score = current_sentiment
-        else:
-            current_sentiment_score = 0.0
+        current_sentiment_score = self.get_sentiment(current_message)
+
+        # Reward for using positive statements.
+        response_sentiment_score = self.get_sentiment(response)
 
         # Reward for positively changing the other side's sentiment
         next_sentiment = self.get_sentiment(next_message)
 
         sentiment_change_score = 0.0
-        sentiment_difference = next_sentiment - current_sentiment
+        sentiment_difference = next_sentiment - current_sentiment_score
 
         if sentiment_difference < 0.0 and next_sentiment >= 0.0:
             # Avoid negative reward for fluctuating between positive and neutral sentiment.
@@ -132,9 +132,9 @@ class EvaluatedConversation(Conversation):
 
         sentiment_change_score = sentiment_difference
 
-        final_score = (dissimilarity_score + current_sentiment_score + sentiment_change_score) / 3
+        final_score = (dissimilarity_score + current_sentiment_score + response_sentiment_score + sentiment_change_score) / 4
         if self.chatbot.chatbot.outer_args.debug_print:
-            print('Score:', str(final_score) + ', Dissimilarity:', str(dissimilarity_score) + ', Current sentiment:', str(current_sentiment_score) + ', Sentiment change:', sentiment_change_score)
+            print('Score: %f, Dissimilarity: %f, Current sentiment: %f, Response sentiment: %f, Sentiment change: %f' % (final_score, dissimilarity_score, current_sentiment_score, response_sentiment_score, sentiment_change_score))
         return final_score
 
     def is_ended(self) -> bool:

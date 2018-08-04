@@ -22,7 +22,8 @@
                 "--rootDir",
                 "DeepQA",
                 "--test",
-                "daemon"
+                "daemon",
+                "-d"
             ]
         },
         {
@@ -44,7 +45,8 @@
                 "DeepQA",
                 "--test",
                 "daemon",
-                "--rl-test"
+                "--rl-test",
+                "-d"
             ]
         },
         {
