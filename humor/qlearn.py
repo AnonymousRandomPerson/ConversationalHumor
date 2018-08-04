@@ -53,7 +53,7 @@ def run() -> None:
         hidden_biases = tf.Variable(tf.random_uniform([num_outputs], 0, max_init_value), name='hidden_biases')
         hidden_out = tf.nn.sigmoid(tf.add(tf.matmul(inputs1, input_weights), input_biases), name='hidden_out')
 
-        q_out = tf.nn.sigmoid(tf.add(tf.matmul(hidden_out, hidden_weights), hidden_biases),name='q_out')
+        q_out = tf.nn.sigmoid(tf.add(tf.matmul(hidden_out, hidden_weights), hidden_biases), name='q_out')
         predict = tf.argmax(q_out, 1)
 
         #Below we obtain the loss by taking the sum of squares difference between the target and prediction Q values.
