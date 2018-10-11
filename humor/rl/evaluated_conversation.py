@@ -110,7 +110,7 @@ class EvaluatedConversation(Conversation):
 
             average_similarity /= num_current_keywords
 
-            dissimilarity_score = min(0.0, 0.5 -average_similarity)
+            dissimilarity_score = min(0.0, 0.5 - average_similarity)
         else:
             dissimilarity_score = 0.0
 
